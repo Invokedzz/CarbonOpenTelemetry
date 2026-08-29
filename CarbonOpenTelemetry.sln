@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{DD3116BC-5BB8-4972-AC5E-87D46E00A714}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon.Infrastructure", "Carbon.Infrastructure\Carbon.Infrastructure.csproj", "{91F0F8E5-7510-4B82-BCA9-A9A761867257}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Domain", "Domain", "{8DEB5868-481C-43C4-8EF4-19641902F61C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Application", "Application", "{3AF767DD-C599-4F62-998C-EB7586D2E480}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{90B02696-2892-481A-8BFB-F0C8105E67ED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon.Core", "Carbon.Core\Carbon.Core.csproj", "{9403EDC7-4439-4653-8498-2252516F9A44}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon.Domain", "Carbon.Domain\Carbon.Domain.csproj", "{86CF3C65-B13F-4DE4-8BE5-F1E4A9D8E849}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon.Application", "Carbon.Application\Carbon.Application.csproj", "{CFA60CFF-15EC-4392-8917-AE0DE0A6C4F4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Providers", "Providers", "{5BEA5967-12C6-477E-A459-38F318F7D430}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon.Interface.Provider", "Carbon.Interface.Provider\Carbon.Interface.Provider.csproj", "{DC398914-123E-427E-8C57-AE20F81AF643}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{91F0F8E5-7510-4B82-BCA9-A9A761867257} = {DD3116BC-5BB8-4972-AC5E-87D46E00A714}
+		{9403EDC7-4439-4653-8498-2252516F9A44} = {90B02696-2892-481A-8BFB-F0C8105E67ED}
+		{86CF3C65-B13F-4DE4-8BE5-F1E4A9D8E849} = {8DEB5868-481C-43C4-8EF4-19641902F61C}
+		{CFA60CFF-15EC-4392-8917-AE0DE0A6C4F4} = {3AF767DD-C599-4F62-998C-EB7586D2E480}
+		{DC398914-123E-427E-8C57-AE20F81AF643} = {5BEA5967-12C6-477E-A459-38F318F7D430}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{91F0F8E5-7510-4B82-BCA9-A9A761867257}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91F0F8E5-7510-4B82-BCA9-A9A761867257}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91F0F8E5-7510-4B82-BCA9-A9A761867257}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91F0F8E5-7510-4B82-BCA9-A9A761867257}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9403EDC7-4439-4653-8498-2252516F9A44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9403EDC7-4439-4653-8498-2252516F9A44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9403EDC7-4439-4653-8498-2252516F9A44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9403EDC7-4439-4653-8498-2252516F9A44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86CF3C65-B13F-4DE4-8BE5-F1E4A9D8E849}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86CF3C65-B13F-4DE4-8BE5-F1E4A9D8E849}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86CF3C65-B13F-4DE4-8BE5-F1E4A9D8E849}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86CF3C65-B13F-4DE4-8BE5-F1E4A9D8E849}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFA60CFF-15EC-4392-8917-AE0DE0A6C4F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFA60CFF-15EC-4392-8917-AE0DE0A6C4F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFA60CFF-15EC-4392-8917-AE0DE0A6C4F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFA60CFF-15EC-4392-8917-AE0DE0A6C4F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC398914-123E-427E-8C57-AE20F81AF643}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC398914-123E-427E-8C57-AE20F81AF643}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC398914-123E-427E-8C57-AE20F81AF643}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC398914-123E-427E-8C57-AE20F81AF643}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
