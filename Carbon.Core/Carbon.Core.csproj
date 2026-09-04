@@ -16,10 +16,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Controllers\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\Carbon.Infrastructure\Carbon.Infrastructure.csproj" />
     </ItemGroup>
 

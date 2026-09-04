@@ -1,11 +1,12 @@
 using Carbon.Domain.Contracts.Data;
 using Carbon.Domain.Contracts.Data.Repositories;
-using Carbon.Domain.Contracts.Providers.Carbon;
-using Carbon.Interface;
-using Carbon.Interface.Clients;
+using Carbon.Domain.Contracts.Providers.TravelImpact;
+using Carbon.Travel.Impact.Provider;
+using Carbon.Travel.Impact.Provider.Clients;
 using Infrastructure.Data;
 using Infrastructure.Data.Repositories;
 using Infrastructure.Providers;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,10 +25,24 @@ public static class CarbonInfrastructure
             opt.UseSqlServer(configuration["ConnectionStrings:Development"]));
     }
 
-    public static void AddCarbonInterface(this IServiceCollection services)
+    public static void AddClimatic(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddTransient<ICarbonInterfaceClient, CarbonInterfaceClient>();
-        services.AddTransient<ICarbonInterfaceSession, CarbonInterfaceSession>();
-        services.AddTransient<ICarbonEstimateProvider, CarbonEstimateProvider>();
+        services.AddTransient<ITravelImpactClient, TravelImpactClient>();
+        services.AddTransient<ITravelImpactSession, TravelImpactSession>();
+        services.AddTransient<ITravelImpactProvider, TravelImpactClientProvider>();
+
+        var parameters = new Dictionary<string, string?>
+        {
+            { "key", configuration["Providers:TImpact:Key"] ?? string.Empty }
+        };
+
+        var baseAddress = configuration["Providers:TImpact:Uri"] ?? string.Empty;
+        var uri = new Uri(QueryHelpers.AddQueryString(baseAddress, parameters));
+        
+        services.AddHttpClient("TravelImpact", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(60);
+            client.BaseAddress = uri;
+        });
     }
 }
