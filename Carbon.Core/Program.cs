@@ -8,7 +8,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDataLayer(builder.Configuration);
-builder.Services.AddClimatic(builder.Configuration);
+builder.Services.AddTImpact(builder.Configuration);
 builder.Services.AddExceptionHandler<ExceptionHandlerMiddleware>();
 
 var app = builder.Build();

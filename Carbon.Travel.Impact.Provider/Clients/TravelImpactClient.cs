@@ -11,6 +11,6 @@ public class TravelImpactClient : ITravelImpactClient
         _impactSession = impactSession;
     }
     
-    public async Task<DetailedFlightEmissionsResponse> GetDetailedFlightEmissionsAsync(DetailedFlightEmissionsRequest request, CancellationToken ct = default)
-        => await _impactSession.SendAsync<DetailedFlightEmissionsRequest, DetailedFlightEmissionsResponse>(request, ct);
+    public async Task<FlightEmissionsResponse> GetFlightEmissionsAsync(FlightEmissionsRequest request, CancellationToken ct = default)
+        => await _impactSession.SendAsync<FlightEmissionsRequest, FlightEmissionsResponse>(request, ct);
 }

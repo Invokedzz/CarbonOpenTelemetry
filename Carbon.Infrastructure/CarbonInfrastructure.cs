@@ -25,7 +25,7 @@ public static class CarbonInfrastructure
             opt.UseSqlServer(configuration["ConnectionStrings:Development"]));
     }
 
-    public static void AddClimatic(this IServiceCollection services, IConfiguration configuration)
+    public static void AddTImpact(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddTransient<ITravelImpactClient, TravelImpactClient>();
         services.AddTransient<ITravelImpactSession, TravelImpactSession>();

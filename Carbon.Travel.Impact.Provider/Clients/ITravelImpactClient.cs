@@ -4,5 +4,5 @@ namespace Carbon.Travel.Impact.Provider.Clients;
 
 public interface ITravelImpactClient
 {
-    Task<DetailedFlightEmissionsResponse> GetDetailedFlightEmissionsAsync(DetailedFlightEmissionsRequest request, CancellationToken ct);
+    Task<FlightEmissionsResponse> GetFlightEmissionsAsync(FlightEmissionsRequest request, CancellationToken ct);
 }

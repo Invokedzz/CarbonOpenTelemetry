@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Carbon.Travel.Impact.Provider.Contracts
 {
-    public class DetailedFlightEmissionsRequest
+    public class FlightEmissionsRequest
     {
         [JsonPropertyName("flights")]
         public List<Flight> Flights { get; set; } = [];
@@ -32,15 +32,15 @@ namespace Carbon.Travel.Impact.Provider.Contracts
         public int Day { get; set; }
     }
     
-    public class DetailedFlightEmissionsResponse
+    public class FlightEmissionsResponse
     {
         [JsonPropertyName("flightEmissions")]
-        public List<FlightWithDetailedEmissions>? Flights { get; set; }
+        public List<FlightWithEmissions>? Flights { get; set; }
         [JsonPropertyName("modelVersion")]
         public ModelVersion? ModelVersion { get; set; }
     }
 
-    public class FlightWithDetailedEmissions
+    public class FlightWithEmissions
     {
         [JsonPropertyName("flight")]
         public required Flight Flight { get; set; }
@@ -55,13 +55,13 @@ namespace Carbon.Travel.Impact.Provider.Contracts
     public class EmissionsGramsPerPax
     {
         [JsonPropertyName("first")]
-        public int First { get; set; }
+        public long First { get; set; }
         [JsonPropertyName("business")]
-        public int Business { get; set; }
+        public long Business { get; set; }
         [JsonPropertyName("premiumEconomy")]
-        public int PremiumEconomy { get; set; }
+        public long PremiumEconomy { get; set; }
         [JsonPropertyName("economy")]
-        public int Economy { get; set; }
+        public long Economy { get; set; }
     }
     
     public class ModelVersion

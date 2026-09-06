@@ -9,17 +9,17 @@ namespace Carbon.Core.Controllers;
 [Route("[controller]")]
 public class TestController: ControllerBase
 {
-    private readonly ITravelImpactClient _provider;
+    private readonly ITravelImpactProvider _provider;
 
-    public TestController(ITravelImpactClient provider)
+    public TestController(ITravelImpactProvider provider)
     {
         _provider = provider;
     }
 
     [HttpPost]
-    public async Task<DetailedFlightEmissionsResponse> Test(DetailedFlightEmissionsRequest request,
+    public async Task<ImpactProviderResponse> Test(ImpactProviderRequest request,
         CancellationToken ct = default)
     {
-        return await _provider.GetDetailedFlightEmissionsAsync(request, ct);
+        return await _provider.GetFlightEmissionsFromProviderAsync(request, ct);
     }
 }
