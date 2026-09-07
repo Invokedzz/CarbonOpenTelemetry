@@ -4,5 +4,5 @@ public interface ICarbonRepository<TEntity, TId>
 {
     Task AddAsync(TEntity entity);
     Task<IEnumerable<TEntity>> GetAllAsync();
-    Task<TEntity> GetByIdAsync(TId id);
+    Task<TEntity?> GetByIdAsync(TId id);
 }

@@ -1,5 +1,6 @@
 using Carbon.Domain.Contracts.Data.Repositories;
 using Carbon.Domain.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data.Repositories;
 
@@ -12,18 +13,28 @@ public class RoleRepository : IRoleRepository
         _context = context;
     }
     
-    public Task AddAsync(Role entity)
+    public async Task AddAsync(Role entity)
     {
-        throw new NotImplementedException();
+        await _context.AddAsync(entity);
     }
 
-    public Task<IEnumerable<Role>> GetAllAsync()
+    public async Task<IEnumerable<Role>> GetAllAsync()
     {
-        throw new NotImplementedException();
+        return await _context.Roles
+            .AsSplitQuery()
+            .ToListAsync();
     }
 
-    public Task<Role> GetByIdAsync(Guid id)
+    public async Task<Role?> GetByNameAsync(string name)
     {
-        throw new NotImplementedException();
+        return await _context.Roles
+            .FirstOrDefaultAsync(e => e.Name == name);
+    }
+
+    public async Task<Role?> GetByIdAsync(Guid id)
+    {
+        return await _context.Roles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == id);
     }
 }

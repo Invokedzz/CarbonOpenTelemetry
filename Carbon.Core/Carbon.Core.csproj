@@ -16,6 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Carbon.Application\Carbon.Application.csproj" />
       <ProjectReference Include="..\Carbon.Infrastructure\Carbon.Infrastructure.csproj" />
     </ItemGroup>
 

@@ -1,5 +1,6 @@
 using Carbon.Domain.Contracts.Data.Repositories;
 using Carbon.Domain.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data.Repositories;
 
@@ -12,18 +13,30 @@ public class UserRepository : IUserRepository
         _context = context;
     }
     
-    public Task AddAsync(User entity)
+    public async Task AddAsync(User entity)
     {
-        throw new NotImplementedException();
+        await _context.Users.AddAsync(entity);
     }
 
-    public Task<IEnumerable<User>> GetAllAsync()
+    public async Task<IEnumerable<User>> GetAllAsync()
     {
-        throw new NotImplementedException();
+        return await _context.Users
+            .AsSplitQuery()
+            .ToListAsync();
     }
 
-    public Task<User> GetByIdAsync(Guid id)
+    public async Task<User?> GetByIdAsync(Guid id)
     {
-        throw new NotImplementedException();
+        return await _context.Users
+            .AsNoTracking()
+            .Include(e => e.Roles)
+            .FirstOrDefaultAsync(e => e.Id == id);
+    }
+
+    public Task<User?> GetByEmailAsync(string email)
+    {
+        return _context.Users
+            .Include(e => e.Roles)
+            .FirstOrDefaultAsync(e => e.Email == email);
     }
 }
