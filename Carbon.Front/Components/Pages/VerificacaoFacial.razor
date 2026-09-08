@@ -1,0 +1,13 @@
+@page "/facial"
+@inject NavigationManager Nav
+
+<h3>Verificação Facial</h3>
+<p>(aqui depois vai entrar a câmera)</p>
+<button @onclick="IrPraDashboard">Simular reconhecimento OK</button>
+
+@code {
+    void IrPraDashboard()
+    {
+        Nav.NavigateTo("/dashboard");
+    }
+}

@@ -1,0 +1,13 @@
+@page "/login"
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+
+<h3>Login</h3>
+<button @onclick="IrPraFacial">Entrar com Google</button>
+
+@code {
+    void IrPraFacial()
+    {
+        Nav.NavigateTo("/facial");
+    }
+}
