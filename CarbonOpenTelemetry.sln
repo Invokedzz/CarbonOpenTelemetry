@@ -1,5 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# 
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{DD3116BC-5BB8-4972-AC5E-87D46E00A714}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon.Infrastructure", "Carbon.Infrastructure\Carbon.Infrastructure.csproj", "{91F0F8E5-7510-4B82-BCA9-A9A761867257}"
@@ -21,6 +22,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon.Azure.Facial.Provider", "Carbon.Azure.Facial.Provider\Carbon.Azure.Facial.Provider.csproj", "{E68BBDDF-E14A-4F85-8E31-F03F40C08FF1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon.Travel.Impact.Provider", "Carbon.Travel.Impact.Provider\Carbon.Travel.Impact.Provider.csproj", "{3CCC2303-211B-440E-9FE2-EE6E03B2F6B0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon.Front", "Carbon.Front\Carbon.Front.csproj", "{4FA9D0F5-0FA1-461D-AB89-4402E69892AD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -60,5 +63,9 @@ Global
 		{3CCC2303-211B-440E-9FE2-EE6E03B2F6B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3CCC2303-211B-440E-9FE2-EE6E03B2F6B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3CCC2303-211B-440E-9FE2-EE6E03B2F6B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FA9D0F5-0FA1-461D-AB89-4402E69892AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FA9D0F5-0FA1-461D-AB89-4402E69892AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FA9D0F5-0FA1-461D-AB89-4402E69892AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FA9D0F5-0FA1-461D-AB89-4402E69892AD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
