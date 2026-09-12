@@ -10,6 +10,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDataLayer(builder.Configuration);
 builder.Services.AddTImpact(builder.Configuration);
 builder.Services.AddExceptionHandler<ExceptionHandlerMiddleware>();
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
@@ -22,7 +23,7 @@ if (app.Environment.IsDevelopment())
 app.UseExceptionHandler("/Error");
 
 app.UseHttpsRedirection();
-app.UseAuthorization();
+app.UseAuthentication();
 app.MapControllers();
 
 app.Run();

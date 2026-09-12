@@ -7,4 +7,5 @@ public interface IUnitOfWork
     Task SaveChangesAsync();
     IUserRepository UserRepository { get; }
     IRoleRepository RoleRepository { get; }
+    IRefreshTokenRepository TokenRepository { get; }
 }
