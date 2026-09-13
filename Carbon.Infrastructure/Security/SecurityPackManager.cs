@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text;
 using Carbon.Domain.Contracts.Security;
 using Carbon.Domain.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
@@ -19,6 +20,20 @@ public class SecurityPackManager : ISecurityPackManager
 
     public string GenerateToken(User user)
         => GenerateAccessToken(user);
+
+    public string GetHashedPassword(User user, string password)
+    {
+        var passwordHasher = new PasswordHasher<User>();
+        return passwordHasher.HashPassword(user, password);
+    }
+
+    public bool VerifyHashedPassword(User user, string hashedPassword, string password)
+    {
+        var passwordHasher = new PasswordHasher<User>();
+        
+        return passwordHasher.VerifyHashedPassword(user, hashedPassword, password) ==
+               PasswordVerificationResult.Success;
+    }
 
     private string GenerateAccessToken(User user)
     {
