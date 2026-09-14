@@ -1,5 +1,6 @@
 using Carbon.Application.Contracts;
-using Carbon.Application.Dtos.Authentication;
+using Carbon.Application.Dtos.Authentication.Login;
+using Carbon.Application.Dtos.Authentication.Register;
 using Carbon.Domain.Contracts.Services.Authentication;
 using Carbon.Domain.Models;
 

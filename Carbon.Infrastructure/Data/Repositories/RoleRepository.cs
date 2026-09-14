@@ -25,10 +25,9 @@ public class RoleRepository : IRoleRepository
             .ToListAsync();
     }
 
-    public async Task<Role?> GetByNameAsync(string name)
+    public async Task<Role> GetByNameAsync(string name)
     {
-        return await _context.Roles
-            .FirstOrDefaultAsync(e => e.Name == name);
+        return await _context.Roles.FirstAsync(e => e.Name == name);
     }
 
     public async Task<Role?> GetByIdAsync(Guid id)

@@ -1,4 +1,4 @@
-namespace Carbon.Application.Dtos.Authentication
+namespace Carbon.Application.Dtos.Authentication.Login
 {
     public record LoginResponseDto(TokenDto Token, DateTime CreatedAt);
 

@@ -18,13 +18,31 @@ public class AuthService : IAuthService
 
     public async Task<CreateAccountResponse> CreateAccount(User user)
     {
-        await Task.Delay(1000);
-        throw new NotImplementedException();
+        var search = await GetUserByEmailOrDefault(user.Email);
+        
+        if (search is not null)
+        {
+            throw new ArgumentException($"{search.Email} is already registered!");
+        }
+
+        user.Password = GetHashedPassword(user, user.Password);
+        user.Roles = [await GetRole(nameof(Roles.General))];
+
+        await _unitOfWork.UserRepository.AddAsync(user);
+        
+        await _unitOfWork.SaveChangesAsync();
+        return new CreateAccountResponse(user, DateTime.Now, true);
     }
 
     public async Task<LoginResponse> Login(User user)
     {
-        var search = await GetUserOrDefault(user.Email);
+        var search = await GetUserByEmailOrDefault(user.Email);
+
+        if (search is null)
+        {
+            throw new ArgumentException($"User with email: {user.Email} not found!");
+        }
+        
         var matches = DoesPasswordMatch(search, search.Password, user.Password);
         
         if (!matches)
@@ -36,11 +54,25 @@ public class AuthService : IAuthService
         return new LoginResponse(accessToken, DateTime.Now.AddMinutes(8), false);
     }
 
-    private async Task<User> GetUserOrDefault(string email)
+    private async Task<User?> GetUserByEmailOrDefault(string email)
+        => await _unitOfWork.UserRepository.GetByEmailAsync(email);
+
+    private async Task<Role> GetRole(string name)
     {
-        var search = await _unitOfWork.UserRepository.GetByEmailAsync(email);
-        return search ?? throw new ArgumentException($"User with email: {email} not found!");
+        var matches = Enum.GetNames<Roles>()
+            .Select(e => e)
+            .FirstOrDefault(e => e == name);
+
+        if (matches is null)
+        {
+            throw new ArgumentException("Assigned role does not exist!");
+        }
+        
+        return await _unitOfWork.RoleRepository.GetByNameAsync(name);
     }
+
+    private string GetHashedPassword(User user, string password)
+        => _securityPackManager.GetHashedPassword(user, password);
     
     private bool DoesPasswordMatch(User user, string currentPassword, string sentPassword) 
         => _securityPackManager.VerifyHashedPassword(user, currentPassword, sentPassword);

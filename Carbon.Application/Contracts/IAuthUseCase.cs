@@ -1,4 +1,6 @@
 using Carbon.Application.Dtos.Authentication;
+using Carbon.Application.Dtos.Authentication.Login;
+using Carbon.Application.Dtos.Authentication.Register;
 
 namespace Carbon.Application.Contracts;
 

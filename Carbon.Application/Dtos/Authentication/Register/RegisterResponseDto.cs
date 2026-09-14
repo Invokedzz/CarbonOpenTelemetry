@@ -1,4 +1,4 @@
-namespace Carbon.Application.Dtos.Authentication
+namespace Carbon.Application.Dtos.Authentication.Register
 {
     public record RegisterResponseDto(UserDto User);
 
