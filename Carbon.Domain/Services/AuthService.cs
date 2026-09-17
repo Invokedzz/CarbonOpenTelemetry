@@ -1,6 +1,7 @@
 using Carbon.Domain.Contracts.Data;
 using Carbon.Domain.Contracts.Security;
 using Carbon.Domain.Contracts.Services.Authentication;
+using Carbon.Domain.Exceptions;
 using Carbon.Domain.Models;
 
 namespace Carbon.Domain.Services;
@@ -22,7 +23,7 @@ public class AuthService : IAuthService
         
         if (search is not null)
         {
-            throw new ArgumentException($"{search.Email} is already registered!");
+            throw new BadRequestException($"{search.Email} is already registered!");
         }
 
         user.Password = GetHashedPassword(user, user.Password);
@@ -40,14 +41,14 @@ public class AuthService : IAuthService
 
         if (search is null)
         {
-            throw new ArgumentException($"User with email: {user.Email} not found!");
+            throw new NotFoundException($"User with email: {user.Email} not found!");
         }
         
         var matches = DoesPasswordMatch(search, search.Password, user.Password);
         
         if (!matches)
         {
-            throw new ArgumentException("Passwords do not match. Please, try again!");
+            throw new BadRequestException("Passwords do not match. Please, try again!");
         }
         
         var accessToken = _securityPackManager.GenerateToken(search);
@@ -65,7 +66,7 @@ public class AuthService : IAuthService
 
         if (matches is null)
         {
-            throw new ArgumentException("Assigned role does not exist!");
+            throw new BadRequestException("Assigned role does not exist!");
         }
         
         return await _unitOfWork.RoleRepository.GetByNameAsync(name);

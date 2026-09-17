@@ -16,14 +16,13 @@ builder.Services.AddExceptionHandler<ExceptionHandlerMiddleware>();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
 var app = builder.Build();
+app.UseExceptionHandler("/Error");
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseExceptionHandler("/Error");
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
