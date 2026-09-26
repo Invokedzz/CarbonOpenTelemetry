@@ -32,5 +32,8 @@ public class RefreshTokenTypeConfiguration : IEntityTypeConfiguration<RefreshTok
 
         builder.Property(e => e.CreatedAt)
             .IsRequired();
+
+        builder.Property(e => e.ExpiresAt)
+            .IsRequired();
     }
 }

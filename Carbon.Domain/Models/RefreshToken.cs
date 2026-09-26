@@ -12,4 +12,5 @@ public class RefreshToken
     public required string Token { get; set; }
     public bool IsRevoked { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime ExpiresAt { get; set; }
 }

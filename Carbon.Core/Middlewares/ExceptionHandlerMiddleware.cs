@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Carbon.Core.Contracts;
 using Carbon.Domain.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Carbon.Core.Middlewares;
 
@@ -31,12 +31,13 @@ public class ExceptionHandlerMiddleware : IExceptionHandler
         return true;
     }
     
-    private static ProblemDetails CreateProblemDetails(HttpContext context, Exception exception)
+    private static CarbonProblemDetails CreateProblemDetails(HttpContext context, Exception exception)
     {
         var statusCode = context.Response.StatusCode;
 
-        var problemDetails = new ProblemDetails
+        var problemDetails = new CarbonProblemDetails
         {
+            OperationId = Guid.NewGuid(),
             Status = statusCode,
             Title = exception.GetType().FullName ?? string.Empty,
             Extensions =

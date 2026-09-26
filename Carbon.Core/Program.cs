@@ -8,6 +8,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddCarbonRateLimiter();
 builder.Services.AddCarbonServices();
 builder.Services.AddCarbonUseCases();
 builder.Services.AddDataLayer(builder.Configuration);
@@ -24,6 +25,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseRateLimiter();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.MapControllers();

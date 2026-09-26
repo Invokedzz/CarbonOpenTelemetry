@@ -28,7 +28,12 @@ public class RefreshTokenRepository : IRefreshTokenRepository
     public async Task<RefreshToken?> GetByIdAsync(Guid id)
     {
         return await _context.Tokens
-            .Where(e => !e.IsRevoked)
             .FirstOrDefaultAsync(e => e.Id == id);
+    }
+
+    public async Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken ct)
+    {
+        return await _context.Tokens
+            .FirstOrDefaultAsync(e => e.Token == token, cancellationToken: ct);
     }
 }   
