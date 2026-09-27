@@ -2,6 +2,12 @@ using System.Net;
 
 namespace Carbon.Domain.Exceptions
 {
+    public class UnauthorizedException : DomainException
+    {
+        public override HttpStatusCode StatusCode { get; set; } = HttpStatusCode.Unauthorized;
+        public UnauthorizedException(string message) : base(message) {}
+    }
+    
     public class NotFoundException : DomainException
     {
         public override HttpStatusCode StatusCode { get; set; } = HttpStatusCode.NotFound;

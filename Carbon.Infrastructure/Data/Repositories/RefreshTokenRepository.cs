@@ -13,9 +13,9 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         _context = context;
     }
     
-    public async Task AddAsync(RefreshToken entity)
+    public async Task AddAsync(RefreshToken entity, CancellationToken ct = default)
     {
-        await _context.Tokens.AddAsync(entity);
+        await _context.Tokens.AddAsync(entity, ct);
     }
 
     public async Task<IEnumerable<RefreshToken>> GetAllAsync()
@@ -25,15 +25,16 @@ public class RefreshTokenRepository : IRefreshTokenRepository
             .ToListAsync();
     }
 
-    public async Task<RefreshToken?> GetByIdAsync(Guid id)
+    public async Task<RefreshToken?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         return await _context.Tokens
-            .FirstOrDefaultAsync(e => e.Id == id);
+            .FirstOrDefaultAsync(e => e.Id == id, ct);
     }
 
-    public async Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken ct)
+    public async Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken ct = default)
     {
         return await _context.Tokens
-            .FirstOrDefaultAsync(e => e.Token == token, cancellationToken: ct);
+            .Where(e => !e.IsRevoked)
+            .FirstOrDefaultAsync(e => e.Token == token, ct);
     }
 }   

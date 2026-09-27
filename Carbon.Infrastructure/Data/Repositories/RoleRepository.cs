@@ -13,9 +13,9 @@ public class RoleRepository : IRoleRepository
         _context = context;
     }
     
-    public async Task AddAsync(Role entity)
+    public async Task AddAsync(Role entity, CancellationToken ct = default)
     {
-        await _context.AddAsync(entity);
+        await _context.AddAsync(entity, ct);
     }
 
     public async Task<IEnumerable<Role>> GetAllAsync()
@@ -25,12 +25,12 @@ public class RoleRepository : IRoleRepository
             .ToListAsync();
     }
 
-    public async Task<Role> GetByNameAsync(string name)
+    public async Task<Role> GetByNameAsync(string name, CancellationToken ct = default)
     {
-        return await _context.Roles.FirstAsync(e => e.Name == name);
+        return await _context.Roles.FirstAsync(e => e.Name == name, ct);
     }
 
-    public async Task<Role?> GetByIdAsync(Guid id)
+    public async Task<Role?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await _context.Roles
             .AsNoTracking()

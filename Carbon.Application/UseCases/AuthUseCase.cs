@@ -1,5 +1,6 @@
 using Carbon.Application.Contracts;
 using Carbon.Application.Dtos.Authentication.Login;
+using Carbon.Application.Dtos.Authentication.Refresh;
 using Carbon.Application.Dtos.Authentication.Register;
 using Carbon.Domain.Contracts.Services.Authentication;
 using Carbon.Domain.Models;
@@ -15,7 +16,7 @@ public class AuthUseCase : IAuthUseCase
         _authService = authService;
     }
 
-    public async Task<RegisterResponseDto> Register(RegisterRequestDto request)
+    public async Task<RegisterResponseDto> Register(RegisterRequestDto request, CancellationToken ct = default)
     {
         var user = new User
         {
@@ -24,11 +25,11 @@ public class AuthUseCase : IAuthUseCase
             Password = request.Password,
         };
 
-        var createAcc = await _authService.CreateAccount(user);
+        var createAcc = await _authService.CreateAccountAsync(user, ct);
         return new RegisterResponseDto(new UserDto(createAcc.User.Username, createAcc.User.Email, createAcc.IsActive, createAcc.CreatedAt));
     }
 
-    public async Task<LoginResponseDto> Login(LoginRequestDto request)
+    public async Task<LoginResponseDto> Login(LoginRequestDto request, CancellationToken ct = default)
     {
         var user = new User
         {
@@ -37,7 +38,24 @@ public class AuthUseCase : IAuthUseCase
             Password = request.Password
         };
 
-        var authenticate = await _authService.Login(user);
-        return new LoginResponseDto(new TokenDto(authenticate.AccessToken, authenticate.ExpiresAt, authenticate.IsRevoked), DateTime.Now);
+        var authenticate = await _authService.LoginAsync(user, ct);
+        
+        return new LoginResponseDto(new TokenDto(
+            authenticate.AccessToken,
+            authenticate.RefreshToken,
+            authenticate.ExpiresAt,
+            authenticate.IsRevoked),
+            DateTime.Now);
+    }
+
+    public async Task<RefreshResponseDto> Refresh(RefreshRequestDto request, CancellationToken ct = default)
+    {
+        var token = await _authService.RefreshAsync(request.Token, ct);
+        
+        return new RefreshResponseDto(new RefreshTokenDto(
+            token.RefreshToken,
+            token.AccessToken,
+            token.ExpiresAt,
+            token.IsRevoked));
     }
 }

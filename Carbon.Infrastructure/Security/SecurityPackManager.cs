@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Carbon.Domain.Contracts.Security;
 using Carbon.Domain.Models;
@@ -20,6 +21,12 @@ public class SecurityPackManager : ISecurityPackManager
 
     public string GenerateToken(User user)
         => GenerateAccessToken(user);
+
+    public string GenerateRefreshToken()
+    {
+        var token = RandomNumberGenerator.GetBytes(64);
+        return Convert.ToBase64String(token);
+    }
 
     public string GetHashedPassword(User user, string password)
     {

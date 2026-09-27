@@ -2,6 +2,7 @@ using Carbon.Application.Contracts;
 using Carbon.Application.UseCases;
 using Carbon.Core.Contracts;
 using Carbon.Domain.Contracts.Services.Authentication;
+using Carbon.Domain.Contracts.Services.Emissions;
 using Carbon.Domain.Services;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -10,10 +11,16 @@ namespace Carbon.Core.Extensions
     public static class Extensions
     {
         public static void AddCarbonServices(this IServiceCollection services)
-            => services.AddTransient<IAuthService, AuthService>();
+        {
+            services.AddTransient<IAuthService, AuthService>();
+            services.AddTransient<IEmissionsService, EmissionsService>();
+        }
 
         public static void AddCarbonUseCases(this IServiceCollection services)
-            => services.AddTransient<IAuthUseCase, AuthUseCase>();
+        {
+            services.AddTransient<IAuthUseCase, AuthUseCase>();
+            services.AddTransient<IEmissionsUseCase, EmissionsUseCase>();
+        }
 
         public static void AddCarbonRateLimiter(this IServiceCollection services)
         {

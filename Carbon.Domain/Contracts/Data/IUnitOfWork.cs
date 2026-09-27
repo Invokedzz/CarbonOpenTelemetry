@@ -4,7 +4,7 @@ namespace Carbon.Domain.Contracts.Data;
 
 public interface IUnitOfWork
 { 
-    Task SaveChangesAsync();
+    Task SaveChangesAsync(CancellationToken ct);
     IUserRepository UserRepository { get; }
     IRoleRepository RoleRepository { get; }
     IRefreshTokenRepository TokenRepository { get; }

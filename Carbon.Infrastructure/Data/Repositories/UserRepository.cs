@@ -13,9 +13,9 @@ public class UserRepository : IUserRepository
         _context = context;
     }
     
-    public async Task AddAsync(User entity)
+    public async Task AddAsync(User entity, CancellationToken ct = default)
     {
-        await _context.Users.AddAsync(entity);
+        await _context.Users.AddAsync(entity, ct);
     }
 
     public async Task<IEnumerable<User>> GetAllAsync()
@@ -25,7 +25,7 @@ public class UserRepository : IUserRepository
             .ToListAsync();
     }
 
-    public async Task<User?> GetByIdAsync(Guid id)
+    public async Task<User?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await _context.Users
             .AsNoTracking()
@@ -33,10 +33,10 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(e => e.Id == id);
     }
 
-    public Task<User?> GetByEmailAsync(string email)
+    public Task<User?> GetByEmailAsync(string email, CancellationToken ct = default)
     {
         return _context.Users
             .Include(e => e.Roles)
-            .FirstOrDefaultAsync(e => e.Email == email);
+            .FirstOrDefaultAsync(e => e.Email == email, ct);
     }
 }
