@@ -115,6 +115,9 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(60)
                         .HasColumnType("nvarchar(60)");
+                    b.Property<byte[]>("FaceEmbedding")
+                        .HasMaxLength(2048)
+                        .HasColumnType("varbinary(2048)");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()

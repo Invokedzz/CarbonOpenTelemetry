@@ -1,3 +1,4 @@
+using Carbon.Domain.Contracts.Services.Facial;
 using Carbon.Application.Contracts;
 using Carbon.Application.UseCases;
 using Carbon.Core.Contracts;
@@ -20,6 +21,7 @@ namespace Carbon.Core.Extensions
         {
             services.AddTransient<IAuthUseCase, AuthUseCase>();
             services.AddTransient<IEmissionsUseCase, EmissionsUseCase>();
+            services.AddTransient<IFacialUseCase, FacialUseCase>();
         }
 
         public static void AddCarbonRateLimiter(this IServiceCollection services)

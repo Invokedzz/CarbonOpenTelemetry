@@ -33,10 +33,17 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(e => e.Id == id);
     }
 
-    public Task<User?> GetByEmailAsync(string email, CancellationToken ct = default)
+     public Task<User?> GetByEmailAsync(string email, CancellationToken ct = default)
     {
         return _context.Users
             .Include(e => e.Roles)
             .FirstOrDefaultAsync(e => e.Email == email, ct);
+    }
+
+    public async Task UpdateFaceEmbeddingAsync(Guid userId, byte[] faceEmbedding, CancellationToken ct = default)
+    {
+        await _context.Users
+            .Where(e => e.Id == userId)
+            .ExecuteUpdateAsync(s => s.SetProperty(e => e.FaceEmbedding, faceEmbedding), ct);
     }
 }

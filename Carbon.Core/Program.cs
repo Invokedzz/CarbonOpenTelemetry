@@ -13,6 +13,7 @@ builder.Services.AddCarbonServices();
 builder.Services.AddCarbonUseCases();
 builder.Services.AddDataLayer(builder.Configuration);
 builder.Services.AddTImpact(builder.Configuration);
+builder.Services.AddFacialRecognition();
 builder.Services.AddExceptionHandler<ExceptionHandlerMiddleware>();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
