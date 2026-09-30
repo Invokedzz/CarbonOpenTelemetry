@@ -43,17 +43,12 @@ namespace Carbon.Domain.Contracts.Services.Emissions
         ImpactBucket ContrailsImpact,
         DateOnly ModelDate,
         DateTimeOffset CalculatedAt);
-
-    /// <summary>
-    /// Regras de negócio do cálculo. Os limites são de referência e podem ser ajustados pelo grupo.
-    /// </summary>
+    
     public static class EmissionsRules
     {
         public const int MaxFlights = 10;
         public const int MinPassengers = 1;
         public const int MaxPassengers = 100;
-
-        // Classificação por passageiro (kg de CO2e na viagem inteira)
         public const decimal LowLimitKgPerPassenger = 100m;
         public const decimal ModerateLimitKgPerPassenger = 500m;
     }
