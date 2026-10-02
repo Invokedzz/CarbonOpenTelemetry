@@ -19,6 +19,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Carbon.Domain\Carbon.Domain.csproj" />
       <ProjectReference Include="..\Carbon.Travel.Impact.Provider\Carbon.Travel.Impact.Provider.csproj" />
+      <ProjectReference Include="..\Carbon.Azure.Facial.Provider\Carbon.Azure.Facial.Provider.csproj" />
     </ItemGroup>
 
 </Project>

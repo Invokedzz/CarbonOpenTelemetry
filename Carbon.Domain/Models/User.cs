@@ -12,6 +12,7 @@ public class User
     public required string Email { get; set; }
     public required string Password { get; set; }
     public bool IsActive { get; set; }
+    public byte[]? FaceEmbedding { get; set; }
     public DateTime CreatedAt { get; set; }
     public ICollection<Role> Roles { get; set; } = [];
     public ICollection<RefreshToken> RefreshTokens = [];

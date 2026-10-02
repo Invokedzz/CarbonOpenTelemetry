@@ -1,3 +1,5 @@
+using Carbon.Azure.Facial.Clients;
+using Carbon.Domain.Contracts.Providers.Facial;
 using System.Text;
 using Carbon.Domain.Contracts.Data;
 using Carbon.Domain.Contracts.Data.Repositories;
@@ -50,6 +52,12 @@ public static class CarbonInfrastructure
             client.Timeout = TimeSpan.FromSeconds(60);
             client.BaseAddress = uri;
         });
+    }
+    public static void AddFacialRecognition(this IServiceCollection services)
+    {
+        // Singleton: os modelos de IA são pesados e carregam uma vez só
+        services.AddSingleton<IFaceRecognitionClient, FaceRecognitionClient>();
+        services.AddTransient<IFacialRecognitionProvider, FacialRecognitionProvider>();
     }
 
     public static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)

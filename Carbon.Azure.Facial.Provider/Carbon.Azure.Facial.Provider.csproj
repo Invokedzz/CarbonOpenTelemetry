@@ -7,4 +7,9 @@
         <RootNamespace>Carbon.Azure.Facial</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="FaceAiSharp.Bundle" Version="0.6.35" />
+      <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.26.0" />
+    </ItemGroup>
+
 </Project>
