@@ -2,28 +2,24 @@ using System.Net;
 
 namespace Carbon.Domain.Exceptions
 {
-    public class UnauthorizedException : DomainException
+    public class UnauthorizedException(string message) : DomainException(message)
     {
         public override HttpStatusCode StatusCode { get; set; } = HttpStatusCode.Unauthorized;
-        public UnauthorizedException(string message) : base(message) {}
     }
     
-    public class NotFoundException : DomainException
+    public class NotFoundException(string message) : DomainException(message)
     {
         public override HttpStatusCode StatusCode { get; set; } = HttpStatusCode.NotFound;
-        public NotFoundException(string message) : base(message) {}
     }
 
-    public class BadRequestException : DomainException
+    public class BadRequestException(string message) : DomainException(message)
     {
         public override HttpStatusCode StatusCode { get; set; } = HttpStatusCode.BadRequest;
-        public BadRequestException(string message) : base(message) {}
     }
 
-    public class InternalServerError : DomainException
+    public class InternalServerError(string message) : DomainException(message)
     {
         public override HttpStatusCode StatusCode { get; set; } = HttpStatusCode.InternalServerError;
-        public InternalServerError(string message) : base(message) {}
     }
 
     public class DomainException : Exception
