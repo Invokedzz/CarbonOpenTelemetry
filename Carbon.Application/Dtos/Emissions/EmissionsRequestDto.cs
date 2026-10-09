@@ -5,6 +5,9 @@ using Carbon.Domain.Contracts.Services.Emissions;
 namespace Carbon.Application.Dtos.Emissions;
 
 public record EmissionsRequestDto(
+    [Required(ErrorMessage = "UserId field is required!")]
+    Guid UserId,
+    
     [Required(ErrorMessage = "Flights field is required!")]
     [MinLength(1, ErrorMessage = "At least one flight must be informed!")]
     List<FlightLegDto> Flights,

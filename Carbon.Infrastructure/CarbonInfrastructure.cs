@@ -24,6 +24,7 @@ public static class CarbonInfrastructure
     {
         services.AddTransient<IRoleRepository, RoleRepository>();
         services.AddTransient<IUserRepository, UserRepository>();
+        services.AddTransient<IAirportRepository, AirportRepository>();
         services.AddTransient<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddTransient<IUnitOfWork, UnitOfWork>();
 

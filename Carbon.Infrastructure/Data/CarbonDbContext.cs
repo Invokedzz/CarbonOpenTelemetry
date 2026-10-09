@@ -8,6 +8,7 @@ public class CarbonDbContext : DbContext
     public virtual DbSet<User> Users { get; set; }
     public virtual DbSet<Role> Roles { get; set; }
     public virtual DbSet<RefreshToken> Tokens { get; set; }
+    public virtual DbSet<Airport> Airports { get; set; }
     
     public CarbonDbContext(DbContextOptions<CarbonDbContext> options) : base(options)
     {

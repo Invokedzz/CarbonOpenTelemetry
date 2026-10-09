@@ -7,7 +7,7 @@ namespace Infrastructure.Data.Repositories;
 public class RefreshTokenRepository : IRefreshTokenRepository
 {
     private readonly CarbonDbContext _context;
-
+    
     public RefreshTokenRepository(CarbonDbContext context)
     {
         _context = context;
@@ -18,11 +18,11 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         await _context.Tokens.AddAsync(entity, ct);
     }
 
-    public async Task<IEnumerable<RefreshToken>> GetAllAsync()
+    public async Task<IEnumerable<RefreshToken>> GetAllAsync(CancellationToken ct = default)
     {
         return await _context.Tokens
             .AsNoTracking()
-            .ToListAsync();
+            .ToListAsync(ct);
     }
 
     public async Task<RefreshToken?> GetByIdAsync(Guid id, CancellationToken ct = default)

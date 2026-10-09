@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Carbon.Core.Controllers;
 
 [ApiController]
-[Authorize]
+//[Authorize] comentado enquanto n add o bearer token
 [Route("Carbon/[controller]")]
 public class EmissionsController : ControllerBase
 {

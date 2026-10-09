@@ -18,19 +18,19 @@ public class UserRepository : IUserRepository
         await _context.Users.AddAsync(entity, ct);
     }
 
-    public async Task<IEnumerable<User>> GetAllAsync()
+    public async Task<IEnumerable<User>> GetAllAsync(CancellationToken ct = default)
     {
         return await _context.Users
             .AsSplitQuery()
-            .ToListAsync();
+            .ToListAsync(ct);
     }
 
-    public async Task<User?> GetByIdAsync(Guid id, CancellationToken ct)
+    public async Task<User?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         return await _context.Users
             .AsNoTracking()
             .Include(e => e.Roles)
-            .FirstOrDefaultAsync(e => e.Id == id);
+            .FirstOrDefaultAsync(e => e.Id == id, ct);
     }
 
     public Task<User?> GetByEmailAsync(string email, CancellationToken ct = default)

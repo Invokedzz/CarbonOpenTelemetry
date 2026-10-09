@@ -25,6 +25,7 @@ namespace Carbon.Domain.Contracts.Services.Emissions
         DateOnly DepartureDate);
 
     public record EmissionsCalculationRequest(
+        Guid UserId,
         List<FlightLeg> Flights,
         CabinClass Cabin,
         int Passengers,

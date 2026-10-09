@@ -1,6 +1,9 @@
+using Carbon.Domain.Contracts.Data;
 using Carbon.Domain.Contracts.Providers.TravelImpact;
+using Carbon.Domain.Contracts.Services.Authentication;
 using Carbon.Domain.Contracts.Services.Emissions;
 using Carbon.Domain.Exceptions;
+using Carbon.Domain.Models;
 
 namespace Carbon.Domain.Services;
 
@@ -9,10 +12,12 @@ public class EmissionsService : IEmissionsService
     private const decimal GramsPerKg = 1_000m;
     private const decimal KgPerTonne = 1_000m;
 
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ITravelImpactProvider _provider;
 
-    public EmissionsService(ITravelImpactProvider provider)
+    public EmissionsService(IUnitOfWork unitOfWork, ITravelImpactProvider provider)
     {
+        _unitOfWork = unitOfWork;
         _provider = provider;
     }
 
@@ -32,6 +37,43 @@ public class EmissionsService : IEmissionsService
             }).ToList()
         };
 
+        var user = await _unitOfWork
+            .UserRepository
+            .GetByIdAsync(request.UserId, ct) ?? throw new NotFoundException("User not found!");
+
+        var routes = providerRequest.Flights
+            .Select(f => new { f.Origin, f.Destination })
+            .ToList();
+        
+        List<Airport> airports = [];
+        
+        foreach (var route in routes)
+        {
+            var originAirport = await _unitOfWork
+                .AirportRepository
+                .GetAirportByIataAsync(route.Origin, ct);
+            
+            var destinationAirport = await _unitOfWork
+                .AirportRepository
+                .GetAirportByIataAsync(route.Destination, ct);
+            
+            if (originAirport is null || destinationAirport is null)
+                continue;
+            
+            airports.AddRange([originAirport, destinationAirport]);
+        }
+
+        if (airports.Any(e => e.Country != "Brazil"))
+        {
+            var roles = user.Roles
+                .Where(e => e.Name != nameof(Roles.General))
+                .ToList();
+
+            if (roles.Count == 0)
+                throw new UnauthorizedException
+                    ($"{nameof(Roles.General)} can't view international flights!");
+        }
+        
         var providerResponse = await _provider.GetFlightEmissionsFromProviderAsync(providerRequest, ct);
 
         if (providerResponse.Flights.Count == 0)

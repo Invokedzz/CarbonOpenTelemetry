@@ -8,4 +8,5 @@ public interface IUnitOfWork
     IUserRepository UserRepository { get; }
     IRoleRepository RoleRepository { get; }
     IRefreshTokenRepository TokenRepository { get; }
+    IAirportRepository AirportRepository { get; }
 }

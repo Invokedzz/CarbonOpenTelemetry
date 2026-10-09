@@ -16,6 +16,7 @@ public class EmissionsUseCase : IEmissionsUseCase
     public async Task<EmissionsResponseDto> Calculate(EmissionsRequestDto request, CancellationToken ct = default)
     {
         var calculationRequest = new EmissionsCalculationRequest(
+            request.UserId,
             request.Flights.Select(f => new FlightLeg(
                 f.Origin,
                 f.Destination,
@@ -30,16 +31,23 @@ public class EmissionsUseCase : IEmissionsUseCase
 
         return new EmissionsResponseDto(
             result.Id,
-            result.Cabin.ToString(),
-            result.Passengers,
-            result.RoundTrip,
-            result.FlightsCount,
-            result.KgPerPassenger,
-            result.TotalKg,
-            result.TotalTonnes,
-            result.Level.ToString(),
-            result.ContrailsImpact.ToString(),
+            new FlightInformation(
+                result.Cabin.ToString(),
+                result.Passengers,
+                result.FlightsCount,
+                result.RoundTrip
+            ),
+            new TotalEmissions(
+                result.KgPerPassenger,
+                result.TotalKg,
+                result.TotalTonnes,
+                new TotalImpact(
+                    result.Level.ToString(),
+                    result.ContrailsImpact.ToString()
+                )
+            ),
             result.ModelDate,
-            result.CalculatedAt);
+            result.CalculatedAt
+        );
     }
 }

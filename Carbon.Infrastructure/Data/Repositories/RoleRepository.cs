@@ -18,11 +18,11 @@ public class RoleRepository : IRoleRepository
         await _context.AddAsync(entity, ct);
     }
 
-    public async Task<IEnumerable<Role>> GetAllAsync()
+    public async Task<IEnumerable<Role>> GetAllAsync(CancellationToken ct = default)
     {
         return await _context.Roles
             .AsSplitQuery()
-            .ToListAsync();
+            .ToListAsync(ct);
     }
 
     public async Task<Role> GetByNameAsync(string name, CancellationToken ct = default)
@@ -30,10 +30,10 @@ public class RoleRepository : IRoleRepository
         return await _context.Roles.FirstAsync(e => e.Name == name, ct);
     }
 
-    public async Task<Role?> GetByIdAsync(Guid id, CancellationToken ct)
+    public async Task<Role?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         return await _context.Roles
             .AsNoTracking()
-            .FirstOrDefaultAsync(e => e.Id == id);
+            .FirstOrDefaultAsync(e => e.Id == id, ct);
     }
 }
