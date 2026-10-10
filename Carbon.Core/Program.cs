@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerAuthorization();
 
 builder.Services.AddCarbonRateLimiter();
 builder.Services.AddCarbonServices();

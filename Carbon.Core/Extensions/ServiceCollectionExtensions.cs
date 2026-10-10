@@ -5,6 +5,7 @@ using Carbon.Domain.Contracts.Services.Authentication;
 using Carbon.Domain.Contracts.Services.Emissions;
 using Carbon.Domain.Services;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.OpenApi.Models;
 
 namespace Carbon.Core.Extensions
 {
@@ -51,6 +52,36 @@ namespace Carbon.Core.Extensions
                     
                     await context.HttpContext.Response.WriteAsJsonAsync(response, token);
                 };
+            });
+        }
+
+        public static void AddSwaggerAuthorization(this IServiceCollection services)
+        {
+            services.AddSwaggerGen(e =>
+            {
+                e.AddSecurityDefinition(nameof(Utility.Bearer), new OpenApiSecurityScheme
+                {
+                    Name = nameof(Utility.Authorization),
+                    Type = SecuritySchemeType.Http,
+                    Scheme = nameof(Utility.Bearer).ToLowerInvariant(),
+                    BearerFormat = nameof(Utility.Jwt).ToUpperInvariant(),
+                    In = ParameterLocation.Header,
+                });
+                
+                e.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = nameof(Utility.Bearer)
+                            }
+                        },
+                        []
+                    }
+                });
             });
         }
     }

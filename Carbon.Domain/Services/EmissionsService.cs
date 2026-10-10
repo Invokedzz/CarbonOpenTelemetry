@@ -83,11 +83,6 @@ public class EmissionsService : IEmissionsService
 
         var gramsPerPassenger = GetGramsForCabin(providerResponse.Emissions, request.Cabin);
 
-        if (gramsPerPassenger <= 0)
-        {
-            throw new BadRequestException($"No emissions data for cabin {request.Cabin} on the informed flights. The cabin may not exist on this aircraft.");
-        }
-
         var tripMultiplier = request.RoundTrip ? 2 : 1;
 
         var kgPerPassenger = gramsPerPassenger / GramsPerKg * tripMultiplier;
@@ -95,15 +90,15 @@ public class EmissionsService : IEmissionsService
 
         return new EmissionsCalculationResponse(
             Id: providerResponse.Id,
-            Cabin: request.Cabin,
-            Passengers: request.Passengers,
-            RoundTrip: request.RoundTrip,
-            FlightsCount: providerResponse.Flights.Count,
-            KgPerPassenger: Math.Round(kgPerPassenger, 2),
-            TotalKg: Math.Round(totalKg, 2),
-            TotalTonnes: Math.Round(totalKg / KgPerTonne, 3),
-            Level: Classify(kgPerPassenger),
-            ContrailsImpact: providerResponse.ImpactBucket,
+            new FlightInformation(request.Cabin,
+                request.Passengers,
+                providerResponse.Flights.Count,
+                request.RoundTrip),
+            new TotalEmissions(KgPerPassenger: Math.Round(kgPerPassenger, 2),
+                TotalKg: Math.Round(totalKg, 2),
+                TotalTonnes: Math.Round(totalKg / KgPerTonne, 3),
+                new TotalImpact(Level: Classify(kgPerPassenger),
+                    ContrailsImpact: providerResponse.ImpactBucket)),
             ModelDate: providerResponse.Dated,
             CalculatedAt: DateTimeOffset.UtcNow);
     }

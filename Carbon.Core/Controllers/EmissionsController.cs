@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace Carbon.Core.Controllers;
 
 [ApiController]
-//[Authorize] comentado enquanto n add o bearer token
 [Route("Carbon/[controller]")]
 public class EmissionsController : ControllerBase
 {
@@ -18,6 +17,7 @@ public class EmissionsController : ControllerBase
     }
 
     [HttpPost("Calculate")]
+    [Authorize(Roles = "Admin,General,Director")]
     public async Task<EmissionsResponseDto> Calculate(EmissionsRequestDto request, CancellationToken ct = default)
         => await _useCase.Calculate(request, ct);
 }

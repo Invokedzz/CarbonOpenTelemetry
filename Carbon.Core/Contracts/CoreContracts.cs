@@ -11,4 +11,11 @@ namespace Carbon.Core.Contracts
     {
         SessionPolicy
     }
+
+    internal enum Utility
+    {
+        Bearer,
+        Authorization,
+        Jwt
+    }
 }

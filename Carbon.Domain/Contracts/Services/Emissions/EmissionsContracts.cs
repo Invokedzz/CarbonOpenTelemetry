@@ -33,17 +33,25 @@ namespace Carbon.Domain.Contracts.Services.Emissions
 
     public record EmissionsCalculationResponse(
         Guid Id,
+        FlightInformation FlightInformation,
+        TotalEmissions TotalEmissions,
+        DateOnly ModelDate,
+        DateTimeOffset CalculatedAt);
+    
+    public record FlightInformation(
         CabinClass Cabin,
         int Passengers,
-        bool RoundTrip,
         int FlightsCount,
+        bool RoundTrip);
+    
+    public record TotalEmissions(
         decimal KgPerPassenger,
         decimal TotalKg,
         decimal TotalTonnes,
-        EmissionLevel Level,
-        ImpactBucket ContrailsImpact,
-        DateOnly ModelDate,
-        DateTimeOffset CalculatedAt);
+        TotalImpact Impact);
+    
+    public record TotalImpact(EmissionLevel Level,
+        ImpactBucket ContrailsImpact);
     
     public static class EmissionsRules
     {

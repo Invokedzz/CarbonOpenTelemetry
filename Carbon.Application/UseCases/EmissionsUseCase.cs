@@ -31,19 +31,19 @@ public class EmissionsUseCase : IEmissionsUseCase
 
         return new EmissionsResponseDto(
             result.Id,
-            new FlightInformation(
-                result.Cabin.ToString(),
-                result.Passengers,
-                result.FlightsCount,
-                result.RoundTrip
+            new Dtos.Emissions.FlightInformation(
+                result.FlightInformation.Cabin.ToString(),
+                result.FlightInformation.Passengers,
+                result.FlightInformation.FlightsCount,
+                result.FlightInformation.RoundTrip
             ),
-            new TotalEmissions(
-                result.KgPerPassenger,
-                result.TotalKg,
-                result.TotalTonnes,
-                new TotalImpact(
-                    result.Level.ToString(),
-                    result.ContrailsImpact.ToString()
+            new Dtos.Emissions.TotalEmissions(
+                result.TotalEmissions.KgPerPassenger,
+                result.TotalEmissions.TotalKg,
+                result.TotalEmissions.TotalTonnes,
+                new Dtos.Emissions.TotalImpact(
+                    result.TotalEmissions.Impact.Level.ToString(),
+                    result.TotalEmissions.Impact.ContrailsImpact.ToString()
                 )
             ),
             result.ModelDate,
