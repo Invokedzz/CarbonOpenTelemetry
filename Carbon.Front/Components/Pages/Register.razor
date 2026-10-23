@@ -1,0 +1,135 @@
+@page "/register"
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+@inject NavigationManager Navigation
+
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        background-color: #0f172a; /* slate-900 */
+    }
+</style>
+
+<div class="min-h-screen bg-slate-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-slate-800 border border-slate-700 p-8 rounded-xl shadow-2xl">
+        <div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-white">
+                Crie sua conta
+            </h2>
+            <p class="mt-2 text-center text-sm text-slate-400">
+                Carbon Application
+            </p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="bg-red-900/40 border border-red-500 text-red-300 px-4 py-3 rounded relative" role="alert">
+                <span class="block sm:inline">@errorMessage</span>
+            </div>
+        }
+
+        <EditForm Model="@registerModel" OnValidSubmit="HandleRegister" class="mt-8 space-y-6">
+            <DataAnnotationsValidator />
+
+            <div class="rounded-md -space-y-px">
+                <!-- Campo de Username -->
+                <div class="mb-4">
+                    <label for="username" class="block text-sm font-medium text-slate-300 mb-1">Nome de Usuário</label>
+                    <InputText id="username"
+                               @bind-Value="registerModel.Username"
+                               class="appearance-none rounded-lg relative block w-full px-3 py-2 bg-slate-700 border border-slate-600 placeholder-slate-400 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                               placeholder="Seu usuário (3 a 20 caracteres)" />
+                    <ValidationMessage For="@(() => registerModel.Username)" class="text-red-400 text-xs mt-1" />
+                </div>
+
+                <!-- Campo de E-mail -->
+                <div class="mb-4">
+                    <label for="email-address" class="block text-sm font-medium text-slate-300 mb-1">E-mail</label>
+                    <InputText id="email-address"
+                               @bind-Value="registerModel.Email"
+                               class="appearance-none rounded-lg relative block w-full px-3 py-2 bg-slate-700 border border-slate-600 placeholder-slate-400 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                               placeholder="seu@email.com" />
+                    <ValidationMessage For="@(() => registerModel.Email)" class="text-red-400 text-xs mt-1" />
+                </div>
+
+                <!-- Campo de Senha -->
+                <div class="mb-4">
+                    <label for="password" class="block text-sm font-medium text-slate-300 mb-1">Senha</label>
+                    <InputText type="password"
+                               id="password"
+                               @bind-Value="registerModel.Password"
+                               class="appearance-none rounded-lg relative block w-full px-3 py-2 bg-slate-700 border border-slate-600 placeholder-slate-400 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                               placeholder="Mínimo 10 caracteres, letras, números e símbolos" />
+                    <ValidationMessage For="@(() => registerModel.Password)" class="text-red-400 text-xs mt-1" />
+                </div>
+            </div>
+
+            <div>
+                <button type="submit"
+                        disabled="@isLoading"
+                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-indigo-500 disabled:opacity-50">
+                    @if (isLoading)
+                    {
+                        <span class="inline-block animate-spin mr-2">⏳</span>
+                        <span>Cadastrando...</span>
+                    }
+                    else
+                    {
+                        <span>Cadastrar</span>
+                    }
+                </button>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="/login" class="text-sm text-indigo-400 hover:text-indigo-300">Já tem uma conta? Faça login</a>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private RegisterModel registerModel = new();
+    private bool isLoading = false;
+    private string? errorMessage;
+
+    private async Task HandleRegister()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            // Simulação de chamada HTTP para o backend (ex: HttpClient.PostAsJsonAsync)
+            await Task.Delay(1500);
+
+            // Sucesso: redireciona para o login
+            Navigation.NavigateTo("/login");
+        }
+        catch (Exception)
+        {
+            errorMessage = "Ocorreu um erro ao realizar o cadastro. Tente novamente.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    public class RegisterModel
+    {
+        [StringLength(maximumLength: 20, MinimumLength = 3, ErrorMessage = "O nome de usuário deve ter entre 3 e 20 caracteres.")]
+        [Required(ErrorMessage = "O campo nome de usuário é obrigatório!", AllowEmptyStrings = false)]
+        public string Username { get; set; } = string.Empty;
+
+        [EmailAddress(ErrorMessage = "Formato de e-mail inválido!")]
+        [Required(ErrorMessage = "O campo e-mail é obrigatório!", AllowEmptyStrings = false)]
+        public string Email { get; set; } = string.Empty;
+
+        [StringLength(maximumLength: 40, MinimumLength = 10, ErrorMessage = "A senha deve ter entre 10 e 40 caracteres.")]
+        [Required(ErrorMessage = "O campo senha é obrigatório!", AllowEmptyStrings = false)]
+        [RegularExpression(@"^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]+$",
+            ErrorMessage = "A senha deve conter letras, números e caracteres especiais!")]
+        public string Password { get; set; } = string.Empty;
+    }
+}

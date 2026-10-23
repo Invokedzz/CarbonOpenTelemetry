@@ -1,0 +1,241 @@
+@using Carbon.Application.Dtos.Emissions
+@using Carbon.Domain.Contracts.Services.Emissions
+
+@page "/emissions/calculate"
+@using System.ComponentModel.DataAnnotations
+@using System.Text.Json.Serialization
+@inject NavigationManager Navigation
+
+<div class="max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+    <div class="bg-white shadow-md rounded-xl p-8">
+        <div class="mb-6 border-b pb-4">
+            <h2 class="text-2xl font-bold text-gray-900">Calculadora de Emissões de Carbono</h2>
+            <p class="text-sm text-gray-600">Preencha os dados dos voos para calcular o impacto ambiental.</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+                <span>@errorMessage</span>
+            </div>
+        }
+
+        <EditForm Model="@model" OnValidSubmit="HandleSubmit">
+            <DataAnnotationsValidator />
+
+            <!-- Dados Gerais -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- UserId -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ID do Usuário (Guid)</label>
+                    <InputText @bind-Value="model.UserIdString" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="00000000-0000-0000-0000-000000000000" />
+                    <ValidationMessage For="@(() => model.UserIdString)" class="text-red-500 text-xs mt-1" />
+                </div>
+
+                <!-- Cabin -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Classe da Cabine</label>
+                    <InputSelect @bind-Value="model.Cabin" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        @foreach (CabinClass cabin in Enum.GetValues(typeof(CabinClass)))
+                        {
+                            <option value="@cabin">@cabin</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <!-- Passengers -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Passageiros (1 - 100)</label>
+                    <InputNumber @bind-Value="model.Passengers" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                    <ValidationMessage For="@(() => model.Passengers)" class="text-red-500 text-xs mt-1" />
+                </div>
+
+                <!-- RoundTrip -->
+                <div class="flex items-center pt-6">
+                    <label class="flex items-center cursor-pointer">
+                        <InputCheckbox @bind-Value="model.RoundTrip" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" />
+                        <span class="ml-2 text-sm text-gray-900 font-medium">Viagem de Ida e Volta (Round Trip)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Seção de Voos (FlightLegs) -->
+            <div class="mb-6 border-t pt-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Trechos de Voo (Flights)</h3>
+                    <button type="button" @class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none" @onclick="AddFlightLeg">
+                        + Adicionar Trecho
+                    </button>
+                </div>
+
+                <ValidationMessage For="@(() => model.Flights)" class="text-red-500 text-xs mb-4 block" />
+
+                @if (model.Flights.Count == 0)
+                {
+                    <p class="text-sm text-gray-500 italic bg-gray-50 p-4 rounded text-center">Nenhum trecho de voo adicionado. Clique no botão acima.</p>
+                }
+
+                @for (int i = 0; i < model.Flights.Count; i++)
+                {
+                    var index = i;
+                    var flight = model.Flights[i];
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4 relative">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs font-bold text-gray-500 uppercase">Trecho @(index + 1)</span>
+                            <button type="button" class="text-red-600 hover:text-red-800 text-xs font-semibold" @onclick="() => RemoveFlightLeg(index)">Remover</button>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+                            <!-- Origin -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Origem (IATA)</label>
+                                <InputText @bind-Value="flight.Origin" maxlength="3" class="w-full px-2 py-1.5 border border-gray-300 rounded uppercase text-sm" placeholder="GRU" />
+                                <ValidationMessage For="@(() => flight.Origin)" class="text-red-500 text-xs mt-1" />
+                            </div>
+
+                            <!-- Destination -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Destino (IATA)</label>
+                                <InputText @bind-Value="flight.Destination" maxlength="3" class="w-full px-2 py-1.5 border border-gray-300 rounded uppercase text-sm" placeholder="JFK" />
+                                <ValidationMessage For="@(() => flight.Destination)" class="text-red-500 text-xs mt-1" />
+                            </div>
+
+                            <!-- CarrierCode -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Cia (2 Carac.)</label>
+                                <InputText @bind-Value="flight.CarrierCode" maxlength="2" class="w-full px-2 py-1.5 border border-gray-300 rounded uppercase text-sm" placeholder="AA" />
+                                <ValidationMessage For="@(() => flight.CarrierCode)" class="text-red-500 text-xs mt-1" />
+                            </div>
+
+                            <!-- FlightNumber -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Nº do Voo</label>
+                                <InputNumber @bind-Value="flight.FlightNumber" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="900" />
+                                <ValidationMessage For="@(() => flight.FlightNumber)" class="text-red-500 text-xs mt-1" />
+                            </div>
+
+                            <!-- DepartureDate -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Data Partida</label>
+                                <InputDate @bind-Value="flight.DepartureDate" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm" />
+                                <ValidationMessage For="@(() => flight.DepartureDate)" class="text-red-500 text-xs mt-1" />
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Botão de Envio -->
+            <div class="flex justify-end pt-4 border-t">
+                <button type="submit" disabled="@isLoading" class="px-6 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">
+                    @if (isLoading)
+                    {
+                        <span>Calculando...</span>
+                    }
+                    else
+                    {
+                        <span>Calcular Emissões</span>
+                    }
+                </button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private EmissionsFormModel model = new();
+    private bool isLoading = false;
+    private string? errorMessage;
+
+    private void AddFlightLeg()
+    {
+        model.Flights.Add(new FlightLegModel());
+    }
+
+    private void RemoveFlightLeg(int index)
+    {
+        if (model.Flights.Count > 0)
+        {
+            model.Flights.RemoveAt(index);
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            // Conversão segura do ViewModel espelho para o seu DTO real de backend se necessário
+            if (!Guid.TryParse(model.UserIdString, out var parsedGuid))
+            {
+                errorMessage = "UserId inválido. Certifique-se de preencher um GUID correto.";
+                isLoading = false;
+                return;
+            }
+
+            // Exemplo de mapeamento para o seu DTO real:
+            // var requestDto = new EmissionsRequestDto(parsedGuid, model.Flights.Select(f => new FlightLegDto(...)).ToList(), model.Cabin, model.Passengers, model.RoundTrip);
+
+            await Task.Delay(1500); // Simulação de requisição HTTP post
+            Navigation.NavigateTo("/");
+        }
+        catch (Exception)
+        {
+            errorMessage = "Ocorreu um erro ao processar o cálculo.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    // Enum espelho para o CabinClass (caso não esteja global no projeto)
+    public enum CabinClass
+    {
+        Economy,
+        PremiumEconomy,
+        Business,
+        First
+    }
+
+    // Classes ViewModels locais com as mesmas validações dos DTOs do backend
+    public class EmissionsFormModel
+    {
+        [Required(ErrorMessage = "UserId field is required!")]
+        public string UserIdString { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Flights field is required!")]
+        [MinLength(1, ErrorMessage = "At least one flight must be informed!")]
+        public List<FlightLegModel> Flights { get; set; } = new();
+
+        public CabinClass Cabin { get; set; } = CabinClass.Economy;
+
+        [Range(1, 100, ErrorMessage = "Passengers must be between 1 and 100!")]
+        public int Passengers { get; set; } = 1;
+
+        public bool RoundTrip { get; set; } = false;
+    }
+
+    public class FlightLegModel
+    {
+        [Required(ErrorMessage = "Origin field is required!")]
+        [StringLength(3, MinimumLength = 3, ErrorMessage = "Origin must be a 3-letter IATA code!")]
+        public string Origin { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Destination field is required!")]
+        [StringLength(3, MinimumLength = 3, ErrorMessage = "Destination must be a 3-letter IATA code!")]
+        public string Destination { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "CarrierCode field is required!")]
+        [StringLength(2, MinimumLength = 2, ErrorMessage = "CarrierCode must have 2 characters!")]
+        public string CarrierCode { get; set; } = string.Empty;
+
+        [Range(1, 9999, ErrorMessage = "FlightNumber must be between 1 and 9999!")]
+        public int FlightNumber { get; set; } = 1;
+
+        [Required(ErrorMessage = "DepartureDate field is required!")]
+        public DateOnly DepartureDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+    }
+}

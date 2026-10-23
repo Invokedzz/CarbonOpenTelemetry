@@ -44,7 +44,7 @@ public static class CarbonInfrastructure
         };
 
         var baseAddress = configuration["Providers:TImpact:Uri"] ?? string.Empty;
-        var uri = new Uri(QueryHelpers.AddQueryString(baseAddress, parameters));
+        var uri = new Url(QueryHelpers.AddQueryString(baseAddress, parameters));
 
         services.AddHttpClient("TravelImpact", client =>
         {

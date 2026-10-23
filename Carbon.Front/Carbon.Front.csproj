@@ -6,4 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Carbon.Application\Carbon.Application.csproj" />
+  </ItemGroup>
+
 </Project>
