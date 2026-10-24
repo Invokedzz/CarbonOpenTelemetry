@@ -1,32 +1,17 @@
-namespace Carbon.Front.ViewModels.Emissions
+namespace Carbon.Front.ViewModels.Emissions;
+ 
+public record FlightLeg(string Origin, string Destination, string CarrierCode, int FlightNumber, DateOnly DepartureDate);
+public record EmissionsRequest(Guid UserId, List<FlightLeg> Flights, string Cabin, int Passengers, bool RoundTrip);
+ 
+public record EmissionsResponse(Guid Id, FlightInformation Information, TotalEmissions TotalEmissions, DateOnly ModelDate, DateTimeOffset CalculatedAt);
+public record FlightInformation(string Cabin, int Passengers, int FlightsCount, bool RoundTrip);
+public record TotalEmissions(decimal KgPerPassenger, decimal TotalKg, decimal TotalTonnes, TotalImpact Impact);
+public record TotalImpact(string Level, string ContrailsImpact);
+ 
+public static class ApiRoutes
 {
-    public class EmissionsRequestViewModel
-    {
-        public List<FlightLegViewModel>? FlightLegs { get; set; }
-        public string? Cabin { get; set; }
-        public int? Passengers { get; set; }
-        public bool RoundTrip { get; set; }
-    }
-
-    public class FlightLegViewModel
-    {
-        public string? Origin { get; set; }
-        public string? Destination { get; set; }
-        public string? CarrierCode { get; set; }
-        public int? FlightNumber { get; set; }
-        public DateOnly? DepartureDate { get; set; }
-    }
-
-    public class EmissionsResponseViewModel
-    {
-        public string? Cabin { get; set; }
-        public int Passengers { get; set; }
-        public int FlightsCount { get; set; }
-        public bool RoundTrip { get; set; }
-        public decimal KgPerPassenger { get; set; }
-        public decimal TotalKg { get; set; }
-        public decimal TotalTonnes { get; set; }
-        public string? Level { get; set; }
-        public string? ContrailsImpact { get; set; }
-    }
+    // [HttpPost("/Register")] etc. use a leading slash, which bypasses the "Carbon/[controller]" prefix.
+    public const string Register = "/Register";
+    public const string Login = "/Login";
+    public const string EmissionsCalculate = "/Carbon/Emissions/Calculate";
 }

@@ -1,7 +1,11 @@
 @page "/register"
 @rendermode InteractiveServer
 @using System.ComponentModel.DataAnnotations
+@using System.Net
+@using Carbon.Front.Util
+@using Microsoft.AspNetCore.Identity.Data
 @inject NavigationManager Navigation
+@inject ApiClient Api
 
 <style>
     html, body {
@@ -33,32 +37,32 @@
             <DataAnnotationsValidator />
 
             <div class="rounded-md -space-y-px">
-                <!-- Campo de Username -->
                 <div class="mb-4">
                     <label for="username" class="block text-sm font-medium text-slate-300 mb-1">Nome de Usuário</label>
                     <InputText id="username"
                                @bind-Value="registerModel.Username"
+                               autocomplete="username"
                                class="appearance-none rounded-lg relative block w-full px-3 py-2 bg-slate-700 border border-slate-600 placeholder-slate-400 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                                placeholder="Seu usuário (3 a 20 caracteres)" />
                     <ValidationMessage For="@(() => registerModel.Username)" class="text-red-400 text-xs mt-1" />
                 </div>
 
-                <!-- Campo de E-mail -->
                 <div class="mb-4">
                     <label for="email-address" class="block text-sm font-medium text-slate-300 mb-1">E-mail</label>
                     <InputText id="email-address"
                                @bind-Value="registerModel.Email"
+                               autocomplete="email"
                                class="appearance-none rounded-lg relative block w-full px-3 py-2 bg-slate-700 border border-slate-600 placeholder-slate-400 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                                placeholder="seu@email.com" />
                     <ValidationMessage For="@(() => registerModel.Email)" class="text-red-400 text-xs mt-1" />
                 </div>
 
-                <!-- Campo de Senha -->
                 <div class="mb-4">
                     <label for="password" class="block text-sm font-medium text-slate-300 mb-1">Senha</label>
                     <InputText type="password"
                                id="password"
                                @bind-Value="registerModel.Password"
+                               autocomplete="new-password"
                                class="appearance-none rounded-lg relative block w-full px-3 py-2 bg-slate-700 border border-slate-600 placeholder-slate-400 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                                placeholder="Mínimo 10 caracteres, letras, números e símbolos" />
                     <ValidationMessage For="@(() => registerModel.Password)" class="text-red-400 text-xs mt-1" />
@@ -90,7 +94,7 @@
 
 @code {
     private RegisterModel registerModel = new();
-    private bool isLoading = false;
+    private bool isLoading;
     private string? errorMessage;
 
     private async Task HandleRegister()
@@ -100,20 +104,23 @@
 
         try
         {
-            // Simulação de chamada HTTP para o backend (ex: HttpClient.PostAsJsonAsync)
-            await Task.Delay(1500);
+            using var res = await Api.PostAsync("/Register",
+                new RegisterModel { Username =registerModel.Username,
+                    Email = registerModel.Email, Password = registerModel.Password
+        });
 
-            // Sucesso: redireciona para o login
-            Navigation.NavigateTo("/login");
+            if (!res.IsSuccessStatusCode)
+            {
+                errorMessage = res.StatusCode == HttpStatusCode.Conflict
+                    ? "Este e-mail ou nome de usuário já está em uso."
+                    : string.Empty;
+                return;
+            }
+
+            Navigation.NavigateTo("/login?registered=true");
         }
-        catch (Exception)
-        {
-            errorMessage = "Ocorreu um erro ao realizar o cadastro. Tente novamente.";
-        }
-        finally
-        {
-            isLoading = false;
-        }
+        catch (HttpRequestException) { errorMessage = "Não foi possível conectar ao servidor."; }
+        finally { isLoading = false; }
     }
 
     public class RegisterModel

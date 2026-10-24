@@ -1,10 +1,21 @@
 using Carbon.Front.Components;
+using Carbon.Front.Util;
+using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddAuthorizationCore();
+builder.Services.AddCascadingAuthenticationState();
+ 
+builder.Services.AddScoped<SessionStore>();
+ 
+builder.Services.AddHttpClient<ApiClient>(c =>
+    c.BaseAddress = new Uri(builder.Configuration["Api:BaseUrl"]
+                            ?? throw new InvalidOperationException("Api:BaseUrl is not configured.")));
 
 var app = builder.Build();
 

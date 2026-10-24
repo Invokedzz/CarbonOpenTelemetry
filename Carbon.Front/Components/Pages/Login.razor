@@ -1,7 +1,13 @@
 @page "/login"
 @rendermode InteractiveServer
 @using System.ComponentModel.DataAnnotations
+@using System.Net
+@using System.Text.Json
+@using Carbon.Domain.Contracts.Services.Authentication
+@using Carbon.Front.Util
 @inject NavigationManager Navigation
+@inject ApiClient Api
+@inject SessionStore Session
 
 <style>
     html, body {
@@ -22,6 +28,13 @@
             </p>
         </div>
 
+        @if (Registered)
+        {
+            <div class="bg-emerald-900/40 border border-emerald-500 text-emerald-300 px-4 py-3 rounded relative" role="status">
+                <span class="block sm:inline">Conta criada! Entre com seu e-mail e senha.</span>
+            </div>
+        }
+
         @if (!string.IsNullOrEmpty(errorMessage))
         {
             <div class="bg-red-900/40 border border-red-500 text-red-300 px-4 py-3 rounded relative" role="alert">
@@ -33,24 +46,24 @@
             <DataAnnotationsValidator />
 
             <div class="rounded-md -space-y-px">
-                <!-- Campo de E-mail -->
                 <div class="mb-4">
                     <label for="email-address" class="block text-sm font-medium text-slate-300 mb-1">E-mail</label>
                     <InputText id="email-address"
                                @bind-Value="loginModel.Email"
+                               autocomplete="email"
                                class="appearance-none rounded-lg relative block w-full px-3 py-2 bg-slate-700 border border-slate-600 placeholder-slate-400 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                                placeholder="seu@email.com" />
                     <ValidationMessage For="@(() => loginModel.Email)" class="text-red-400 text-xs mt-1" />
                 </div>
 
-                <!-- Campo de Senha -->
                 <div class="mb-4">
                     <label for="password" class="block text-sm font-medium text-slate-300 mb-1">Senha</label>
                     <InputText type="password"
                                id="password"
                                @bind-Value="loginModel.Password"
+                               autocomplete="current-password"
                                class="appearance-none rounded-lg relative block w-full px-3 py-2 bg-slate-700 border border-slate-600 placeholder-slate-400 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                               placeholder="Sua senha segura" />
+                               placeholder="Sua senha" />
                     <ValidationMessage For="@(() => loginModel.Password)" class="text-red-400 text-xs mt-1" />
                 </div>
             </div>
@@ -70,13 +83,20 @@
                     }
                 </button>
             </div>
+
+            <div class="text-center mt-4">
+                <a href="/register" class="text-sm text-indigo-400 hover:text-indigo-300">Não tem conta? Cadastre-se</a>
+            </div>
         </EditForm>
     </div>
 </div>
 
 @code {
+    [SupplyParameterFromQuery] public string? ReturnUrl { get; set; }
+    [SupplyParameterFromQuery] public bool Registered { get; set; }
+
     private LoginModel loginModel = new();
-    private bool isLoading = false;
+    private bool isLoading;
     private string? errorMessage;
 
     private async Task HandleLogin()
@@ -86,21 +106,36 @@
 
         try
         {
-            // Simulação de chamada ao backend (ex: HttpClient.PostAsJsonAsync)
-            await Task.Delay(1500);
+            using var res = await Api.PostAsync("/Login", new LoginModel { Email = loginModel.Email, Password = loginModel.Password });
 
-            // Sucesso: redireciona para o Dashboard
-            Navigation.NavigateTo("/");
+            if (!res.IsSuccessStatusCode)
+            {
+                errorMessage = res.StatusCode == HttpStatusCode.Unauthorized
+                    ? "E-mail ou senha incorretos."
+                    : string.Empty;
+                loginModel.Password = string.Empty;
+                return;
+            }
+
+            var tokens = await res.Content.ReadFromJsonAsync<LoginResponseModel>();
+            if (tokens is null || string.IsNullOrEmpty(tokens?.Token?.AccessToken))
+            {
+                errorMessage = "Resposta inesperada do servidor.";
+                return;
+            }
+
+            await Session.SetAsync(tokens.Token.AccessToken, tokens.Token.RefreshToken);
+            Navigation.NavigateTo(SafeReturnUrl(), replace: true);
         }
-        catch (Exception)
-        {
-            errorMessage = "Ocorreu um erro ao realizar o login. Verifique suas credenciais.";
-        }
-        finally
-        {
-            isLoading = false;
-        }
+        catch (HttpRequestException) { errorMessage = "Não foi possível conectar ao servidor."; }
+        catch (JsonException) { errorMessage = "Resposta inesperada do servidor."; }
+        finally { isLoading = false; }
     }
+
+    private string SafeReturnUrl()
+        => !string.IsNullOrEmpty(ReturnUrl) && ReturnUrl.StartsWith('/') && !ReturnUrl.StartsWith("//") && !ReturnUrl.StartsWith("/\\")
+            ? ReturnUrl
+            : "/emissions";
 
     public class LoginModel
     {
@@ -108,10 +143,21 @@
         [Required(ErrorMessage = "O campo e-mail é obrigatório!", AllowEmptyStrings = false)]
         public string Email { get; set; } = string.Empty;
 
-        [StringLength(maximumLength: 40, MinimumLength = 10, ErrorMessage = "A senha deve ter entre 10 e 40 caracteres.")]
         [Required(ErrorMessage = "O campo senha é obrigatório!", AllowEmptyStrings = false)]
-        [RegularExpression(@"^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]+$",
-            ErrorMessage = "A senha deve conter letras, números e caracteres especiais!")]
         public string Password { get; set; } = string.Empty;
+    }
+
+    public class LoginResponseModel
+    {
+        public TokenModel? Token { get; set; } 
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class TokenModel
+    {
+        public string AccessToken { get; set; }
+        public string RefreshToken { get; set; }
+        public DateTime ExpiresAt { get; set; }
+        public bool IsRevoked { get; set; }
     }
 }

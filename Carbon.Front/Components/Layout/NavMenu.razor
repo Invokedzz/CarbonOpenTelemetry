@@ -1,4 +1,9 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using Carbon.Front.Util
+@using Microsoft.AspNetCore.Components.Authorization
+@inject SessionStore Session
+@inject NavigationManager Navigation
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Carbon.Front</a>
     </div>
@@ -15,16 +20,42 @@
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/login">
-                Login
-            </NavLink>
-        </div>
+        <AuthorizeView Roles="Admin,General,Director">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="emissions">
+                    Emissões
+                </NavLink>
+            </div>
+        </AuthorizeView>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/register">
-                Register
-            </NavLink>
-        </div>
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item px-3">
+                    <button type="button" class="nav-link" @onclick="SignOut">
+                        Sair
+                    </button>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="login">
+                        Login
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="register">
+                        Register
+                    </NavLink>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
     </nav>
 </div>
+
+@code {
+    private async Task SignOut()
+    {
+        await Session.ClearAsync();
+        Navigation.NavigateTo("/login", replace: true);
+    }
+}
