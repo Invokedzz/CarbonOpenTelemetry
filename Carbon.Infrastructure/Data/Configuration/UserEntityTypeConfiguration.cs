@@ -33,5 +33,7 @@ public class UserEntityTypeConfiguration : IEntityTypeConfiguration<User>
         
         builder.Property(e => e.IsActive)
             .HasDefaultValue(true);
+        builder.Property(e => e.FaceEmbedding)
+            .HasMaxLength(2048);
     }
 }
