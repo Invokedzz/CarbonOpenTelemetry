@@ -70,7 +70,7 @@ public class EmissionsService : IEmissionsService
                 .ToList();
 
             if (roles.Count == 0)
-                throw new UnauthorizedException
+                throw new ForbiddenException
                     ($"{nameof(Roles.General)} can't view international flights!");
         }
         

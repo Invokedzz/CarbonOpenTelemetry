@@ -1,0 +1,241 @@
+@page "/admin/usuarios"
+@rendermode InteractiveServer
+@using System.Globalization
+@using System.Net
+@using System.Text.Json
+@using Carbon.Front.Util
+@using Microsoft.AspNetCore.Components.Authorization
+@inject ApiClient Api
+@inject SessionStore Session
+@inject AuthenticationStateProvider AuthState
+@inject NavigationManager Navigation
+
+<style>
+    html, body { margin: 0; padding: 0; background-color: #0f172a; }
+</style>
+
+<div class="min-h-screen bg-slate-900 flex justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-5xl w-full">
+        <div class="bg-slate-800 border border-slate-700 p-8 rounded-xl shadow-2xl space-y-6">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-extrabold text-white">Usuários cadastrados</h1>
+                    <p class="mt-1 text-sm text-slate-400">Área do Admin: veja quem tem acesso e altere o nível de cada usuário.</p>
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                    <a href="/emissions" class="text-sm text-indigo-400 hover:text-indigo-300">Emissões</a>
+                    <button type="button" @onclick="SignOut" class="text-sm text-slate-400 hover:text-white">Sair</button>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <div class="bg-emerald-900/40 border border-emerald-500 text-emerald-300 px-4 py-3 rounded" role="status">@successMessage</div>
+            }
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="bg-red-900/40 border border-red-500 text-red-300 px-4 py-3 rounded" role="alert">@errorMessage</div>
+            }
+
+            @if (denied)
+            {
+                <p class="text-slate-300">Somente usuários com perfil <span class="font-semibold">Admin</span> podem ver esta página.</p>
+            }
+            else if (users is null)
+            {
+                <p class="text-slate-400 text-sm">@(isLoading ? "Carregando usuários..." : "")</p>
+            }
+            else
+            {
+                <div class="grid grid-cols-3 gap-3 text-center">
+                    <div class="bg-slate-700/50 rounded-lg p-3">
+                        <div class="text-2xl font-bold text-white">@users.Count(u => u.Role == "General")</div>
+                        <div class="text-xs text-slate-400">General</div>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-3">
+                        <div class="text-2xl font-bold text-white">@users.Count(u => u.Role == "Director")</div>
+                        <div class="text-xs text-slate-400">Director</div>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-3">
+                        <div class="text-2xl font-bold text-white">@users.Count(u => u.Role == "Admin")</div>
+                        <div class="text-xs text-slate-400">Admin</div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs uppercase text-slate-400 border-b border-slate-700">
+                            <tr>
+                                <th class="py-2 pr-3">Usuário</th>
+                                <th class="py-2 pr-3">E-mail</th>
+                                <th class="py-2 pr-3">Biometria</th>
+                                <th class="py-2 pr-3">Cadastro</th>
+                                <th class="py-2 pr-3">Perfil</th>
+                                <th class="py-2"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var u in users)
+                            {
+                                var row = u;
+                                <tr class="border-b border-slate-700/60">
+                                    <td class="py-2 pr-3 text-white">@row.Username</td>
+                                    <td class="py-2 pr-3 text-slate-300">@row.Email</td>
+                                    <td class="py-2 pr-3">
+                                        @if (row.HasFace)
+                                        {
+                                            <span class="text-emerald-400">Cadastrada</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-amber-400">Pendente</span>
+                                        }
+                                    </td>
+                                    <td class="py-2 pr-3 text-slate-300">@row.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy", pt)</td>
+                                    <td class="py-2 pr-3">
+                                        <select class="px-2 py-1 rounded bg-slate-700 border border-slate-600 text-white"
+                                                value="@selected[row.Id]"
+                                                @onchange="e => selected[row.Id] = e.Value?.ToString() ?? row.Role">
+                                            <option value="General">General</option>
+                                            <option value="Director">Director</option>
+                                            <option value="Admin">Admin</option>
+                                        </select>
+                                    </td>
+                                    <td class="py-2 text-right">
+                                        <button type="button"
+                                                disabled="@(selected[row.Id] == row.Role || savingId == row.Id)"
+                                                @onclick="() => SaveRoleAsync(row)"
+                                                class="px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-xs disabled:opacity-40">
+                                            @(savingId == row.Id ? "Salvando..." : "Salvar")
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="text-xs text-slate-400">A mudança de perfil vale a partir do próximo login da pessoa.</p>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private static readonly CultureInfo pt = new("pt-BR");
+
+    private List<UserSummary>? users;
+    private readonly Dictionary<Guid, string> selected = new();
+    private bool denied;
+    private bool isLoading;
+    private Guid? savingId;
+    private string? errorMessage;
+    private string? successMessage;
+
+    private sealed record UserSummary(Guid Id, string Username, string Email, string Role, bool HasFace, DateTime CreatedAt);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthState.GetAuthenticationStateAsync()).User;
+        if (user.Identity?.IsAuthenticated != true)
+        {
+            Navigation.NavigateTo("/login?returnUrl=%2Fadmin%2Fusuarios", replace: true);
+            return;
+        }
+        if (!Session.FaceVerified)
+        {
+            Navigation.NavigateTo("/facial?returnUrl=%2Fadmin%2Fusuarios", replace: true);
+            return;
+        }
+        if (!user.IsInRole("Admin"))
+        {
+            denied = true;
+            return;
+        }
+
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        try
+        {
+            using var res = await Api.GetAsync("/Carbon/Users", authorized: true);
+            if (!await HandleAuthErrorsAsync(res)) return;
+
+            users = await res.Content.ReadFromJsonAsync<List<UserSummary>>() ?? [];
+            selected.Clear();
+            foreach (var u in users) selected[u.Id] = u.Role;
+        }
+        catch (HttpRequestException) { errorMessage = "Não foi possível conectar ao servidor."; }
+        catch (JsonException) { errorMessage = "Resposta inesperada do servidor."; }
+        finally { isLoading = false; }
+    }
+
+    private async Task SaveRoleAsync(UserSummary row)
+    {
+        errorMessage = null;
+        successMessage = null;
+        savingId = row.Id;
+        try
+        {
+            var newRole = selected[row.Id];
+            using var res = await Api.PutAsync($"/Carbon/Users/{row.Id}/Role", new { Role = newRole }, authorized: true);
+            if (!await HandleAuthErrorsAsync(res)) return;
+
+            var updated = await res.Content.ReadFromJsonAsync<UserSummary>();
+            if (updated is not null && users is not null)
+            {
+                users[users.FindIndex(u => u.Id == updated.Id)] = updated;
+                selected[updated.Id] = updated.Role;
+                successMessage = $"{updated.Username} agora é {updated.Role}.";
+            }
+        }
+        catch (HttpRequestException) { errorMessage = "Não foi possível conectar ao servidor."; }
+        catch (JsonException) { errorMessage = "Resposta inesperada do servidor."; }
+        finally { savingId = null; }
+    }
+
+    // Devolve false (e já trata) quando a resposta é erro
+    private async Task<bool> HandleAuthErrorsAsync(HttpResponseMessage res)
+    {
+        if (res.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            Navigation.NavigateTo("/login?returnUrl=%2Fadmin%2Fusuarios", replace: true);
+            return false;
+        }
+        if (res.StatusCode == HttpStatusCode.Forbidden)
+        {
+            denied = true;
+            return false;
+        }
+        if (!res.IsSuccessStatusCode)
+        {
+            var detail = string.Empty;
+            try
+            {
+                using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync());
+                if (doc.RootElement.TryGetProperty("detail", out var d)) detail = d.GetString() ?? string.Empty;
+            }
+            catch (JsonException) { }
+
+            errorMessage = detail.Contains("own Admin", StringComparison.OrdinalIgnoreCase)
+                ? "Você não pode tirar o seu próprio perfil de Admin."
+                : "Não foi possível concluir a operação.";
+
+            if (users is not null)
+                foreach (var u in users) selected[u.Id] = u.Role;
+            return false;
+        }
+        return true;
+    }
+
+    private async Task SignOut()
+    {
+        await Session.ClearAsync();
+        Navigation.NavigateTo("/login", replace: true);
+    }
+}

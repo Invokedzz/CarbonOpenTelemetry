@@ -4,6 +4,7 @@ using Carbon.Application.UseCases;
 using Carbon.Core.Contracts;
 using Carbon.Domain.Contracts.Services.Authentication;
 using Carbon.Domain.Contracts.Services.Emissions;
+using Carbon.Domain.Contracts.Services.Users;
 using Carbon.Domain.Services;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OpenApi.Models;
@@ -16,6 +17,8 @@ namespace Carbon.Core.Extensions
         {
             services.AddTransient<IAuthService, AuthService>();
             services.AddTransient<IEmissionsService, EmissionsService>();
+            services.AddTransient<IFacialService, FacialService>();
+            services.AddTransient<IUsersService, UsersService>();
         }
 
         public static void AddCarbonUseCases(this IServiceCollection services)
@@ -23,6 +26,7 @@ namespace Carbon.Core.Extensions
             services.AddTransient<IAuthUseCase, AuthUseCase>();
             services.AddTransient<IEmissionsUseCase, EmissionsUseCase>();
             services.AddTransient<IFacialUseCase, FacialUseCase>();
+            services.AddTransient<IUsersUseCase, UsersUseCase>();
         }
 
         public static void AddCarbonRateLimiter(this IServiceCollection services)

@@ -19,6 +19,7 @@ builder.Services.AddExceptionHandler<ExceptionHandlerMiddleware>();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
 var app = builder.Build();
+await app.PromoteConfiguredAdminAsync();
 app.UseExceptionHandler("/Error");
 
 if (app.Environment.IsDevelopment())

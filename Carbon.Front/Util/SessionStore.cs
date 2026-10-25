@@ -10,9 +10,10 @@ public sealed class SessionStore(ProtectedLocalStorage storage)
  
     public string? AccessToken { get; private set; }
     public string? RefreshToken { get; private set; }
+    public bool FaceVerified { get; private set; }
     public event Action? Changed;
  
-    private sealed record StoredTokens(string AccessToken, string? RefreshToken);
+    private sealed record StoredTokens(string AccessToken, string? RefreshToken, bool FaceVerified = false);
  
     public async Task InitializeAsync()
     {
@@ -24,6 +25,7 @@ public sealed class SessionStore(ProtectedLocalStorage storage)
             {
                 AccessToken = t.AccessToken;
                 RefreshToken = t.RefreshToken;
+                FaceVerified = t.FaceVerified;
             }
             _loaded = true;
         }
@@ -35,8 +37,18 @@ public sealed class SessionStore(ProtectedLocalStorage storage)
     {
         AccessToken = accessToken;
         RefreshToken = refreshToken;
+        FaceVerified = false;
         _loaded = true;
         await storage.SetAsync(Key, new StoredTokens(accessToken, refreshToken));
+        Changed?.Invoke();
+    }
+
+    // Chamado depois que o rosto foi conferido (ou cadastrado) com sucesso
+    public async Task MarkFaceVerifiedAsync()
+    {
+        if (string.IsNullOrEmpty(AccessToken)) return;
+        FaceVerified = true;
+        await storage.SetAsync(Key, new StoredTokens(AccessToken, RefreshToken, true));
         Changed?.Invoke();
     }
  
@@ -44,6 +56,7 @@ public sealed class SessionStore(ProtectedLocalStorage storage)
     {
         AccessToken = null;
         RefreshToken = null;
+        FaceVerified = false;
         try { await storage.DeleteAsync(Key); } catch (InvalidOperationException) { }
         Changed?.Invoke();
     }

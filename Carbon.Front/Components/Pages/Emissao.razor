@@ -1,6 +1,5 @@
 @page "/emissions"
 @rendermode InteractiveServer
-@attribute [Authorize(Roles = "Admin,General,Director")]
 @using Microsoft.AspNetCore.Authorization
 @using System.ComponentModel.DataAnnotations
 @using System.Globalization
@@ -32,8 +31,17 @@
                 <div>
                     <h1 class="text-2xl font-extrabold text-white">Emissões de voo</h1>
                     <p class="mt-1 text-sm text-slate-400">Informe os voos para calcular o CO₂ emitido.</p>
+                    <p class="mt-2 text-xs text-slate-400">
+                        Perfil: <span class="font-semibold text-indigo-300">@roleName</span> · @RoleDescription
+                    </p>
                 </div>
-                <button type="button" @onclick="SignOut" class="text-sm text-slate-400 hover:text-white">Sair</button>
+                <div class="flex flex-col items-end gap-1">
+                    @if (roleName == "Admin")
+                    {
+                        <a href="/admin/usuarios" class="text-sm text-indigo-400 hover:text-indigo-300">Usuários</a>
+                    }
+                    <button type="button" @onclick="SignOut" class="text-sm text-slate-400 hover:text-white">Sair</button>
+                </div>
             </div>
 
             @if (!string.IsNullOrEmpty(errorMessage))
@@ -93,7 +101,7 @@
                     </div>
                     <div>
                         <label for="passengers" class="@label">Passageiros</label>
-                        <InputNumber id="passengers" @bind-Value="model.Passengers" class="input" />
+                        <InputNumber id="passengers" @bind-Value="model.Passengers" class="@input" />
                         <ValidationMessage For="@(() => model.Passengers)" class="text-red-400 text-xs mt-1" />
                     </div>
                     <label class="flex items-center gap-2 text-sm text-slate-300 pb-2">
@@ -141,12 +149,51 @@
     private Guid userId;
 
     private string claimTypesFound = string.Empty;
+    private string roleName = "General";
+
+    private string RoleDescription => roleName switch
+    {
+        "Admin" => "voos nacionais e internacionais + gestão de usuários",
+        "Director" => "voos nacionais e internacionais",
+        _ => "apenas voos nacionais"
+    };
+
+    // Traduz os erros mais comuns da API
+    private static async Task<string> ReadErrorAsync(HttpResponseMessage res)
+    {
+        var detail = string.Empty;
+        try
+        {
+            using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync());
+            if (doc.RootElement.TryGetProperty("detail", out var d)) detail = d.GetString() ?? string.Empty;
+        }
+        catch (JsonException) { }
+
+        if (detail.Contains("No emissions data", StringComparison.OrdinalIgnoreCase))
+            return "Não há dados de emissão para esses voos. Confira aeroportos, companhia, número do voo e data.";
+        if (detail.Contains("airport", StringComparison.OrdinalIgnoreCase))
+            return "Aeroporto inválido. Use o código IATA de 3 letras (ex.: GRU).";
+        if ((int)res.StatusCode >= 500)
+            return "Erro no servidor ao calcular as emissões. Verifique a chave do Travel Impact na API.";
+        return string.IsNullOrEmpty(detail) ? "Não foi possível calcular as emissões." : $"Não foi possível calcular: {detail}";
+    }
 
     protected override async Task OnInitializedAsync()
     {
         var user = (await AuthState.GetAuthenticationStateAsync()).User;
+        if (user.Identity?.IsAuthenticated != true)
+        {
+            Navigation.NavigateTo("/login?returnUrl=%2Femissions", replace: true);
+            return;
+        }
+        if (!Session.FaceVerified)
+        {
+            Navigation.NavigateTo("/facial?returnUrl=%2Femissions", replace: true);
+            return;
+        }
         claimTypesFound = string.Join(", ", user.Claims.Select(c => c.Type));
         userId = FindUserId(user);
+        roleName = user.IsInRole("Admin") ? "Admin" : user.IsInRole("Director") ? "Director" : "General";
     }
 
     private static Guid FindUserId(ClaimsPrincipal user)
@@ -189,8 +236,14 @@
                     Navigation.NavigateTo("/login?returnUrl=%2Femissions", replace: true);
                     return;
                 case HttpStatusCode.Forbidden:
-                    errorMessage = "Seu perfil não tem permissão para calcular emissões.";
+                    errorMessage = $"Seu perfil ({roleName}) só pode calcular voos nacionais. Voos internacionais exigem perfil Director ou Admin.";
                     return;
+            }
+
+            if (!res.IsSuccessStatusCode)
+            {
+                errorMessage = await ReadErrorAsync(res);
+                return;
             }
 
             result = await res.Content.ReadFromJsonAsync<EmissionsResponse>();

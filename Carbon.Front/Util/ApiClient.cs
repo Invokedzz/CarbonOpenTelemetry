@@ -5,20 +5,30 @@ namespace Carbon.Front.Util;
 
 public sealed class ApiClient(HttpClient http, SessionStore session)
 {
-    public async Task<HttpResponseMessage> PostAsync<T>(string path, T body, bool authorized = false, CancellationToken ct = default)
+    public Task<HttpResponseMessage> PostAsync<T>(string path, T body, bool authorized = false, CancellationToken ct = default)
+        => SendAsync(new HttpRequestMessage(HttpMethod.Post, path) { Content = JsonContent.Create(body) }, authorized, ct);
+
+    public Task<HttpResponseMessage> PutAsync<T>(string path, T body, bool authorized = false, CancellationToken ct = default)
+        => SendAsync(new HttpRequestMessage(HttpMethod.Put, path) { Content = JsonContent.Create(body) }, authorized, ct);
+
+    public Task<HttpResponseMessage> GetAsync(string path, bool authorized = false, CancellationToken ct = default)
+        => SendAsync(new HttpRequestMessage(HttpMethod.Get, path), authorized, ct);
+
+    private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage req, bool authorized, CancellationToken ct)
     {
-        using var req = new HttpRequestMessage(HttpMethod.Post, path) { Content = JsonContent.Create(body) };
- 
-        if (authorized)
+        using (req)
         {
-            await session.InitializeAsync();
-            if (!string.IsNullOrEmpty(session.AccessToken))
-                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", session.AccessToken);
+            if (authorized)
+            {
+                await session.InitializeAsync();
+                if (!string.IsNullOrEmpty(session.AccessToken))
+                    req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", session.AccessToken);
+            }
+
+            var res = await http.SendAsync(req, ct);
+            if (authorized && res.StatusCode == HttpStatusCode.Unauthorized)
+                await session.ClearAsync();
+            return res;
         }
- 
-        var res = await http.SendAsync(req, ct);
-        if (authorized && res.StatusCode == HttpStatusCode.Unauthorized)
-            await session.ClearAsync();
-        return res;
     }
 }

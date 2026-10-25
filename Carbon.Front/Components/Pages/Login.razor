@@ -125,7 +125,8 @@
             }
 
             await Session.SetAsync(tokens.Token.AccessToken, tokens.Token.RefreshToken);
-            Navigation.NavigateTo(SafeReturnUrl(), replace: true);
+            // Depois da senha, passa pela verificação facial
+            Navigation.NavigateTo($"/facial?returnUrl={Uri.EscapeDataString(SafeReturnUrl())}", replace: true);
         }
         catch (HttpRequestException) { errorMessage = "Não foi possível conectar ao servidor."; }
         catch (JsonException) { errorMessage = "Resposta inesperada do servidor."; }

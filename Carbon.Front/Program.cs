@@ -6,12 +6,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents()
+    // A foto da webcam passa pelo SignalR; o limite padrão (32 KB) é pequeno demais
+    .AddHubOptions(o => o.MaximumReceiveMessageSize = 5 * 1024 * 1024);
 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
  
 builder.Services.AddScoped<SessionStore>();
+builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthStateProvider>();
  
 builder.Services.AddHttpClient<ApiClient>(c =>
     c.BaseAddress = new Uri(builder.Configuration["Api:BaseUrl"]
