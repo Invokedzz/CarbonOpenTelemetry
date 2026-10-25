@@ -1,13 +1,221 @@
 @page "/facial"
-@inject NavigationManager Nav
+@rendermode InteractiveServer
+@implements IAsyncDisposable
+@using System.Net
+@using System.Text.Json
+@using Carbon.Front.Util
+@using Microsoft.AspNetCore.Components.Authorization
+@inject ApiClient Api
+@inject SessionStore Session
+@inject AuthenticationStateProvider AuthState
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
 
-<h3>Verificação Facial</h3>
-<p>(aqui depois vai entrar a câmera)</p>
-<button @onclick="IrPraDashboard">Simular reconhecimento OK</button>
+<style>
+    html, body { margin: 0; padding: 0; background-color: #0f172a; }
+</style>
+
+<div class="min-h-screen bg-slate-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-6 bg-slate-800 border border-slate-700 p-8 rounded-xl shadow-2xl">
+        <div>
+            <h2 class="text-center text-3xl font-extrabold text-white">
+                @(registerMode ? "Cadastro facial" : "Verificação facial")
+            </h2>
+            <p class="mt-2 text-center text-sm text-slate-400">
+                @(registerMode
+                    ? "Primeiro acesso: tire uma foto do seu rosto para cadastrar a biometria."
+                    : "Olhe para a câmera e clique em verificar para confirmar sua identidade.")
+            </p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(infoMessage))
+        {
+            <div class="bg-sky-900/40 border border-sky-500 text-sky-200 px-4 py-3 rounded" role="status">@infoMessage</div>
+        }
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="bg-red-900/40 border border-red-500 text-red-300 px-4 py-3 rounded" role="alert">@errorMessage</div>
+        }
+
+        <div class="relative rounded-lg overflow-hidden border border-slate-600 bg-black aspect-[4/3]">
+            <video @ref="video" autoplay playsinline muted class="w-full h-full object-cover" style="transform: scaleX(-1);"></video>
+            @if (!cameraReady && cameraError is null)
+            {
+                <div class="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Abrindo a câmera...</div>
+            }
+        </div>
+
+        @if (cameraError is not null)
+        {
+            <p class="text-sm text-amber-300">@cameraError</p>
+        }
+
+        <ul class="text-xs text-slate-400 list-disc pl-5 space-y-1">
+            <li>Deixe o rosto centralizado e bem iluminado.</li>
+            <li>Só uma pessoa pode aparecer na imagem.</li>
+        </ul>
+
+        <button type="button"
+                @onclick="CaptureAsync"
+                disabled="@(!cameraReady || isLoading)"
+                class="w-full flex justify-center py-2 px-4 rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50">
+            @if (isLoading)
+            {
+                <span>Processando...</span>
+            }
+            else
+            {
+                <span>@(registerMode ? "Cadastrar meu rosto" : "Verificar rosto")</span>
+            }
+        </button>
+
+        <div class="text-center">
+            <button type="button" @onclick="SignOut" class="text-sm text-slate-400 hover:text-white">Sair</button>
+        </div>
+    </div>
+</div>
 
 @code {
-    void IrPraDashboard()
+    [SupplyParameterFromQuery] public string? ReturnUrl { get; set; }
+
+    private ElementReference video;
+    private bool cameraReady;
+    private string? cameraError;
+    private bool registerMode;
+    private bool isLoading;
+    private bool authenticated;
+    private string? errorMessage;
+    private string? infoMessage;
+
+    private sealed record FaceVerificationResponse(Guid UserId, bool IsMatch, float Similarity, DateTime VerifiedAt);
+
+    protected override async Task OnInitializedAsync()
     {
-        Nav.NavigateTo("/dashboard");
+        var user = (await AuthState.GetAuthenticationStateAsync()).User;
+        if (user.Identity?.IsAuthenticated != true)
+        {
+            Navigation.NavigateTo("/login?returnUrl=%2Ffacial", replace: true);
+            return;
+        }
+        authenticated = true;
     }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || !authenticated) return;
+
+        try
+        {
+            await JS.InvokeVoidAsync("carbonCamera.start", video);
+            cameraReady = true;
+        }
+        catch (JSException)
+        {
+            cameraError = "Não foi possível abrir a câmera. Permita o acesso à câmera no navegador e recarregue a página.";
+        }
+        StateHasChanged();
+    }
+
+    private async Task CaptureAsync()
+    {
+        errorMessage = null;
+        infoMessage = null;
+        isLoading = true;
+
+        try
+        {
+            var image = await JS.InvokeAsync<string>("carbonCamera.capture", video);
+            var path = registerMode ? "/Carbon/Facial/Register" : "/Carbon/Facial/Verify";
+            using var res = await Api.PostAsync(path, new { ImageBase64 = image }, authorized: true);
+
+            if (res.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                Navigation.NavigateTo("/login?returnUrl=%2Ffacial", replace: true);
+                return;
+            }
+
+            if (!res.IsSuccessStatusCode)
+            {
+                var detail = await ReadDetailAsync(res);
+                if (!registerMode && detail.Contains("no registered face", StringComparison.OrdinalIgnoreCase))
+                {
+                    registerMode = true;
+                    infoMessage = "Você ainda não tem rosto cadastrado. Tire uma foto para cadastrar.";
+                    return;
+                }
+                errorMessage = Translate(detail);
+                return;
+            }
+
+            if (registerMode)
+            {
+                await FinishAsync();
+                return;
+            }
+
+            var result = await res.Content.ReadFromJsonAsync<FaceVerificationResponse>();
+            if (result is { IsMatch: true })
+            {
+                await FinishAsync();
+                return;
+            }
+
+            errorMessage = $"Rosto não reconhecido (similaridade {result?.Similarity * 100:0}%). Tente de novo.";
+        }
+        catch (HttpRequestException) { errorMessage = "Não foi possível conectar ao servidor."; }
+        catch (JsonException) { errorMessage = "Resposta inesperada do servidor."; }
+        catch (JSException) { errorMessage = "Não foi possível tirar a foto. Verifique a câmera."; }
+        finally { isLoading = false; }
+    }
+
+    private async Task FinishAsync()
+    {
+        await Session.MarkFaceVerifiedAsync();
+        await StopCameraAsync();
+        Navigation.NavigateTo(SafeReturnUrl(), replace: true);
+    }
+
+    private static async Task<string> ReadDetailAsync(HttpResponseMessage res)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync());
+            return doc.RootElement.TryGetProperty("detail", out var d) ? d.GetString() ?? string.Empty : string.Empty;
+        }
+        catch (JsonException) { return string.Empty; }
+    }
+
+    // A API responde em inglês; aqui traduzimos as mensagens mais comuns
+    private static string Translate(string detail) => detail switch
+    {
+        var d when d.Contains("No face found", StringComparison.OrdinalIgnoreCase)
+            => "Nenhum rosto encontrado. Centralize o rosto e melhore a iluminação.",
+        var d when d.Contains("More than one face", StringComparison.OrdinalIgnoreCase)
+            => "Mais de um rosto na imagem. Só uma pessoa deve aparecer.",
+        var d when d.Contains("Invalid image", StringComparison.OrdinalIgnoreCase)
+            => "Imagem inválida. Tente de novo.",
+        _ => "Não foi possível processar a foto. Tente de novo."
+    };
+
+    private string SafeReturnUrl()
+        => !string.IsNullOrEmpty(ReturnUrl) && ReturnUrl.StartsWith('/') && !ReturnUrl.StartsWith("//") && !ReturnUrl.StartsWith("/\\")
+            ? ReturnUrl
+            : "/emissions";
+
+    private async Task SignOut()
+    {
+        await StopCameraAsync();
+        await Session.ClearAsync();
+        Navigation.NavigateTo("/login", replace: true);
+    }
+
+    private async Task StopCameraAsync()
+    {
+        try { await JS.InvokeVoidAsync("carbonCamera.stop", video); }
+        catch (JSDisconnectedException) { }
+        catch (JSException) { }
+    }
+
+    public async ValueTask DisposeAsync() => await StopCameraAsync();
 }

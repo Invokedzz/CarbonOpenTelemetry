@@ -7,6 +7,12 @@ namespace Carbon.Domain.Exceptions
         public override HttpStatusCode StatusCode { get; set; } = HttpStatusCode.Unauthorized;
     }
     
+    // Usuário logado, mas o perfil dele não pode fazer isso (HTTP 403)
+    public class ForbiddenException(string message) : DomainException(message)
+    {
+        public override HttpStatusCode StatusCode { get; set; } = HttpStatusCode.Forbidden;
+    }
+
     public class NotFoundException(string message) : DomainException(message)
     {
         public override HttpStatusCode StatusCode { get; set; } = HttpStatusCode.NotFound;

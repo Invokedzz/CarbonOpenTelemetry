@@ -33,10 +33,34 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(e => e.Id == id, ct);
     }
 
-    public Task<User?> GetByEmailAsync(string email, CancellationToken ct = default)
+     public Task<User?> GetByEmailAsync(string email, CancellationToken ct = default)
     {
         return _context.Users
             .Include(e => e.Roles)
             .FirstOrDefaultAsync(e => e.Email == email, ct);
+    }
+
+    public async Task<IEnumerable<User>> GetAllWithRolesAsync(CancellationToken ct = default)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .Include(e => e.Roles)
+            .OrderBy(e => e.CreatedAt)
+            .ToListAsync(ct);
+    }
+
+    // Sem AsNoTracking: usado quando o usuário vai ser alterado (ex.: troca de perfil)
+    public async Task<User?> GetByIdForUpdateAsync(Guid id, CancellationToken ct = default)
+    {
+        return await _context.Users
+            .Include(e => e.Roles)
+            .FirstOrDefaultAsync(e => e.Id == id, ct);
+    }
+
+    public async Task UpdateFaceEmbeddingAsync(Guid userId, byte[] faceEmbedding, CancellationToken ct = default)
+    {
+        await _context.Users
+            .Where(e => e.Id == userId)
+            .ExecuteUpdateAsync(s => s.SetProperty(e => e.FaceEmbedding, faceEmbedding), ct);
     }
 }
